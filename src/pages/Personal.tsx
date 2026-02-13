@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Mail, Phone, Briefcase, MapPin, Eye, Edit3, Trash2, Loader2, X, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Search, Plus, Mail, Phone, Briefcase, MapPin, Eye, Edit3, Trash2, Loader2, X, AlertTriangle } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getPersonal, createPersonal, updatePersonal, deletePersonal } from '../services/hseService';

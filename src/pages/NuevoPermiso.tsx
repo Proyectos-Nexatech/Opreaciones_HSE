@@ -46,7 +46,7 @@ export const NuevoPermiso: React.FC = () => {
                                 { id: 'general', label: 'General', icon: FileEdit, active: true },
                                 { id: 'personal', label: 'Personal', icon: Users, active: false },
                                 { id: 'firma', label: 'Firma', icon: PenTool, active: false },
-                            ].map((step, i) => (
+                            ].map((step) => (
                                 <div
                                     key={step.id}
                                     className={cn(
