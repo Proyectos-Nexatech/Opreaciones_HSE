@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { UserConfigModal, RoleConfigModal } from '../components/ConfiguracionModal';
+import { UserConfigModal, RoleConfigModal, ConfirmationModal } from '../components/ConfiguracionModal';
 import { useAuth } from '../context/AuthContext';
 import * as hseService from '../services/hseService';
 
@@ -41,6 +41,16 @@ export const Configuracion: React.FC = () => {
 
     const [users, setUsers] = useState<any[]>([]);
     const [roles, setRoles] = useState<any[]>([]);
+
+    // Confirmation Modal State
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => { },
+        isDestructive: false,
+        confirmText: 'Confirmar'
+    });
 
     useEffect(() => {
         loadData();
@@ -89,47 +99,64 @@ export const Configuracion: React.FC = () => {
         }
     };
 
-    const handleDeleteUser = async (user: any) => {
+    const handleDeleteUser = (user: any) => {
         if (!isAdmin) return;
 
         if (user.status === 'Activo') {
-            if (window.confirm(`¿Desea DESACTIVAR el acceso de ${user.full_name || user.email}? \n\nEl usuario no podrá ingresar al sistema, pero se conservará su historial.`)) {
-                try {
-                    await hseService.updateProfile(user.id, { status: 'Inactivo' });
-                    await loadData();
-                    alert('Usuario desactivado exitosamente.');
-                } catch (error: any) {
-                    console.error('Error deactivating user:', error);
-                    alert(`Error al desactivar usuario: ${error.message}`);
+            setConfirmModal({
+                isOpen: true,
+                title: 'Desactivar Usuario',
+                message: `¿Desea DESACTIVAR el acceso de ${user.full_name || user.email}?\n\nEl usuario no podrá ingresar al sistema, pero se conservará su historial.`,
+                isDestructive: true,
+                confirmText: 'Desactivar',
+                onConfirm: async () => {
+                    try {
+                        await hseService.updateProfile(user.id, { status: 'Inactivo' });
+                        await loadData();
+                    } catch (error: any) {
+                        console.error('Error deactivating user:', error);
+                        alert(`Error al desactivar usuario: ${error.message}`);
+                    }
                 }
-            }
+            });
         } else {
-            // Si ya está inactivo, intentamos eliminar definitivamente
-            if (window.confirm(`¿Está seguro de ELIMINAR PERMANENTEMENTE a ${user.full_name || user.email}? \n\nEsta acción no se puede deshacer.`)) {
-                try {
-                    await hseService.deleteProfile(user.id);
-                    await loadData();
-                    alert('Usuario eliminado del sistema permanentemente.');
-                } catch (error: any) {
-                    console.error('Error deleting user:', error);
-                    // Mensaje amigable si falla por FK
-                    alert('No se pudo eliminar el usuario. Es probable que tenga reportes o registros asociados.\n\nEl usuario permanecerá como "Inactivo" para conservar el historial.');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Eliminar Usuario',
+                message: `¿Está seguro de ELIMINAR PERMANENTEMENTE a ${user.full_name || user.email}?\n\nEsta acción es irreversible y podría fallar si el usuario tiene registros asociados.`,
+                isDestructive: true,
+                confirmText: 'Eliminar',
+                onConfirm: async () => {
+                    try {
+                        await hseService.deleteProfile(user.id);
+                        await loadData();
+                    } catch (error: any) {
+                        console.error('Error deleting user:', error);
+                        alert('No se pudo eliminar el usuario. Es probable que tenga reportes o registros asociados.\n\nEl usuario permanecerá como "Inactivo".');
+                    }
                 }
-            }
+            });
         }
     };
 
-    const handleResetPassword = async (email: string) => {
+    const handleResetPassword = (email: string) => {
         if (!isAdmin) return;
-        if (window.confirm(`¿Enviar correo de restablecimiento de contraseña a ${email}?`)) {
-            try {
-                await hseService.resetUserPassword(email);
-                alert('Correo de restablecimiento enviado exitosamente.');
-            } catch (error: any) {
-                console.error('Error resetting password:', error);
-                alert(`Error al enviar el correo de restablecimiento: ${error.message || 'Intente de nuevo más tarde'}`);
+        setConfirmModal({
+            isOpen: true,
+            title: 'Restablecer Contraseña',
+            message: `¿Enviar correo de restablecimiento de contraseña a ${email}?`,
+            isDestructive: false,
+            confirmText: 'Enviar Correo',
+            onConfirm: async () => {
+                try {
+                    await hseService.resetUserPassword(email);
+                    alert('Correo de restablecimiento enviado exitosamente.');
+                } catch (error: any) {
+                    console.error('Error resetting password:', error);
+                    alert(`Error al enviar el correo: ${error.message}`);
+                }
             }
-        }
+        });
     };
 
     const handleSaveRole = async (data: any) => {
@@ -148,17 +175,24 @@ export const Configuracion: React.FC = () => {
         }
     };
 
-    const handleDeleteRole = async (id: string) => {
+    const handleDeleteRole = (id: string) => {
         if (!isAdmin) return;
-        if (window.confirm('¿Está seguro de eliminar este rol? Se desvincularán los usuarios asociados.')) {
-            try {
-                await hseService.deleteRole(id);
-                await loadData();
-            } catch (error) {
-                console.error('Error deleting role:', error);
-                alert('Error al eliminar el rol');
+        setConfirmModal({
+            isOpen: true,
+            title: 'Eliminar Rol',
+            message: '¿Está seguro de eliminar este rol?\n\nSe desvincularán los usuarios que tengan este perfil asignado.',
+            isDestructive: true,
+            confirmText: 'Eliminar Rol',
+            onConfirm: async () => {
+                try {
+                    await hseService.deleteRole(id);
+                    await loadData();
+                } catch (error) {
+                    console.error('Error deleting role:', error);
+                    alert('Error al eliminar el rol');
+                }
             }
-        }
+        });
     };
 
     if (loading) {
@@ -415,6 +449,16 @@ export const Configuracion: React.FC = () => {
                 onClose={() => setIsRoleModalOpen(false)}
                 onSave={handleSaveRole}
                 initialData={editingRole}
+            />
+
+            <ConfirmationModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+                onConfirm={confirmModal.onConfirm}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                confirmText={confirmModal.confirmText}
+                isDestructive={confirmModal.isDestructive}
             />
         </div>
     );

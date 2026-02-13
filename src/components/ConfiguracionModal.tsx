@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, User, Mail, Shield, ShieldCheck, BadgeCheck, Type, FileText } from 'lucide-react';
+import { X, Save, User, Mail, Shield, ShieldCheck, BadgeCheck, Type, FileText, Trash2, AlertTriangle } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -384,6 +384,68 @@ export const RoleConfigModal: React.FC<RoleModalProps> = ({
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    );
+};
+
+interface ConfirmationModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
+    title: string;
+    message: string;
+    confirmText?: string;
+    cancelText?: string;
+    isDestructive?: boolean;
+}
+
+export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
+    isOpen,
+    onClose,
+    onConfirm,
+    title,
+    message,
+    confirmText = 'Confirmar',
+    cancelText = 'Cancelar',
+    isDestructive = false
+}) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-text/40 backdrop-blur-md animate-in fade-in duration-300">
+            <div className="bg-white rounded-[32px] w-full max-w-sm md:max-w-md shadow-2xl border border-white/20 animate-in zoom-in-95 duration-300 overflow-hidden flex flex-col items-center text-center p-6 md:p-8 relative">
+
+                <div className={cn(
+                    "w-16 h-16 rounded-3xl flex items-center justify-center mb-6 shadow-lg rotate-3 transition-transform hover:rotate-6",
+                    isDestructive ? "bg-red-50 text-red-500 shadow-red-500/10" : "bg-blue-50 text-brand-primary shadow-blue-500/10"
+                )}>
+                    {isDestructive ? <Trash2 className="w-7 h-7" /> : <ShieldCheck className="w-7 h-7" />}
+                </div>
+
+                <h2 className="text-xl font-black text-brand-text mb-3 tracking-tight">{title}</h2>
+                <p className="text-sm text-brand-text-muted font-medium leading-relaxed mb-8 whitespace-pre-line px-4">
+                    {message}
+                </p>
+
+                <div className="flex gap-3 w-full">
+                    <button
+                        onClick={onClose}
+                        className="flex-1 px-4 py-3.5 rounded-2xl border-2 border-gray-100 text-[10px] font-black text-brand-text-muted hover:bg-gray-50 transition-all active:scale-95 uppercase tracking-widest"
+                    >
+                        {cancelText}
+                    </button>
+                    <button
+                        onClick={() => { onConfirm(); onClose(); }}
+                        className={cn(
+                            "flex-[1.5] flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-white text-[10px] font-black hover:brightness-110 shadow-xl transition-all active:scale-95 uppercase tracking-widest",
+                            isDestructive ? "bg-red-500 shadow-red-500/20" : "bg-brand-primary shadow-brand-primary/20"
+                        )}
+                    >
+                        {isDestructive && <Trash2 className="w-3.5 h-3.5" />}
+                        {confirmText}
+                    </button>
+                </div>
             </div>
         </div>
     );
