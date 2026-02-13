@@ -1,0 +1,63 @@
+{
+    "tech_stack": [
+        "TypeScript",
+        "React",
+        "Vite",
+        "Supabase",
+        "Tailwind CSS",
+        "React Router",
+        "Lucide React"
+    ],
+    "features": [
+        {
+            "name": "Authentication",
+            "description": "User login, registration, and password recovery using Supabase Auth.",
+            "files": [
+                "src/context/AuthContext.tsx",
+                "src/pages/Login.tsx",
+                "src/pages/Register.tsx",
+                "src/pages/ResetPassword.tsx"
+            ]
+        },
+        {
+            "name": "Personnel Management",
+            "description": "CRUD operations and profile management for field operatives.",
+            "files": [
+                "src/pages/Personal.tsx",
+                "src/components/PersonalModal.tsx",
+                "src/services/hseService.ts"
+            ]
+        },
+        {
+            "name": "Work Permits (Nuevo Permiso)",
+            "description": "Multi-step form for requesting and signing work permits.",
+            "files": [
+                "src/pages/NuevoPermiso.tsx",
+                "src/services/hseService.ts"
+            ]
+        },
+        {
+            "name": "System Configuration",
+            "description": "Management of users, roles, and platform settings for administrators.",
+            "files": [
+                "src/pages/Configuracion.tsx",
+                "src/services/hseService.ts"
+            ]
+        },
+        {
+            "name": "Event Reporting (Ocurrio Así)",
+            "description": "Reporting and tracking of safety incidents and events.",
+            "files": [
+                "src/pages/OcurrioAsi.tsx",
+                "src/components/ReporteEventoModal.tsx"
+            ]
+        },
+        {
+            "name": "Dashboard",
+            "description": "Visual summary of HSE metrics and active tasks.",
+            "files": [
+                "src/pages/Dashboard.tsx"
+            ]
+        }
+    ]
+}

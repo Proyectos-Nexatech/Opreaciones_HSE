@@ -1,0 +1,19 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:5173",
+  "executionArgs": {
+    "projectName": "Operaciones_HSE",
+    "projectPath": "c:\\Users\\EQC0670\\Operaciones_HSE",
+    "testIds": [
+      "TC001"
+    ],
+    "additionalInstruction": "Ejecutar SOLAMENTE el caso de prueba TC001 para verificar la creación de permisos. El objetivo es aislar la prueba para evitar timeouts de red. Asegúrate de esperar a que los elementos del formulario estén completamente cargados antes de interactuar.",
+    "envs": {
+      "API_KEY": "sk-user-l09_pCwwhYLd3FHOVOBNCk1fNLQtSz6-lzCFbVKThI2A-tONlqtq2vlNHdFFgnA8pW610Q-1EMs1YqCxAvaong-TTsPanEJ9-khbtszO6_lNDxVN8mpEBtxq0FIRPRECUPc"
+    }
+  },
+  "serverPort": 61761,
+  "proxy": "http://427813c0-7a38-4c0c-9093-bb5852c135ce:lirI3KJxcnWOvf3bccEfYPeNRRJ8ECUo@tun.testsprite.com:8080"
+}
