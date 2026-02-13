@@ -91,13 +91,30 @@ export const Configuracion: React.FC = () => {
 
     const handleDeleteUser = async (user: any) => {
         if (!isAdmin) return;
-        if (window.confirm(`¿Está seguro de eliminar el perfil de ${user.full_name || user.email}?`)) {
-            try {
-                await hseService.deleteProfile(user.id);
-                await loadData();
-            } catch (error) {
-                console.error('Error deleting user:', error);
-                alert('Error al eliminar usuario');
+
+        if (user.status === 'Activo') {
+            if (window.confirm(`¿Desea DESACTIVAR el acceso de ${user.full_name || user.email}? \n\nEl usuario no podrá ingresar al sistema, pero se conservará su historial.`)) {
+                try {
+                    await hseService.updateProfile(user.id, { status: 'Inactivo' });
+                    await loadData();
+                    alert('Usuario desactivado exitosamente.');
+                } catch (error: any) {
+                    console.error('Error deactivating user:', error);
+                    alert(`Error al desactivar usuario: ${error.message}`);
+                }
+            }
+        } else {
+            // Si ya está inactivo, intentamos eliminar definitivamente
+            if (window.confirm(`¿Está seguro de ELIMINAR PERMANENTEMENTE a ${user.full_name || user.email}? \n\nEsta acción no se puede deshacer.`)) {
+                try {
+                    await hseService.deleteProfile(user.id);
+                    await loadData();
+                    alert('Usuario eliminado del sistema permanentemente.');
+                } catch (error: any) {
+                    console.error('Error deleting user:', error);
+                    // Mensaje amigable si falla por FK
+                    alert('No se pudo eliminar el usuario. Es probable que tenga reportes o registros asociados.\n\nEl usuario permanecerá como "Inactivo" para conservar el historial.');
+                }
             }
         }
     };

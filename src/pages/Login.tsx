@@ -173,7 +173,7 @@ export const Login = () => {
                             <button
                                 type="button"
                                 onClick={handleGoogleLogin}
-                                className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-gray-100 rounded-xl bg-white text-xs font-bold text-gray-600 hover:bg-gray-50 transition-all duration-200"
+                                className="w-full flex items-center justify-center gap-3 px-4 py-3 lg:py-2.5 border border-gray-100 rounded-xl bg-white text-xs font-bold text-gray-600 hover:bg-gray-50 transition-all duration-200"
                             >
                                 <svg className="h-4 w-4" viewBox="0 0 24 24">
                                     <path
