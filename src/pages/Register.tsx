@@ -43,8 +43,9 @@ export const Register = () => {
                     </div>
                     <h2 className="text-3xl font-black text-gray-900 mb-4">¡Registro Exitoso!</h2>
                     <p className="text-gray-500 font-medium mb-8 leading-relaxed">
-                        Hemos enviado un enlace de confirmación a tu correo.<br />
-                        Por favor verifícalo para activar tu cuenta.
+                        Tu cuenta ha sido creada exitosamente.<br />
+                        <span className="font-bold text-gray-700">Tu acceso está pendiente de aprobación.</span><br />
+                        Un administrador revisará tu solicitud y activará tu cuenta.
                     </p>
                     <button
                         onClick={() => navigate('/login')}

@@ -19,12 +19,30 @@ export const Login = () => {
         setError(null);
 
         try {
-            const { error } = await supabase.auth.signInWithPassword({
+            const { data, error } = await supabase.auth.signInWithPassword({
                 email,
                 password,
             });
 
             if (error) throw error;
+
+            if (data.session?.user) {
+                const { data: profile, error: profileError } = await supabase
+                    .from('user_profiles')
+                    .select('status')
+                    .eq('id', data.session.user.id)
+                    .single();
+
+                if (profileError) {
+                    // Fallback or error handling if profile not found
+                    console.error("Error fetching profile on login", profileError);
+                }
+
+                if (profile && profile.status === 'Inactivo') {
+                    await supabase.auth.signOut();
+                    throw new Error('Tu cuenta está pendiente de aprobación por un administrador.');
+                }
+            }
             navigate('/');
         } catch (err: any) {
             setError(err.message || 'Error al iniciar sesión');

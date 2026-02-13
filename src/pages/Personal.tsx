@@ -4,6 +4,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getPersonal, createPersonal, updatePersonal, deletePersonal } from '../services/hseService';
 import { PersonalModal } from '../components/PersonalModal';
+import { usePermissions } from '../hooks/usePermissions';
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -18,6 +19,8 @@ export const Personal: React.FC = () => {
     // UI states
     const [selectedPerson, setSelectedPerson] = useState<any>(null);
     const [personToDelete, setPersonToDelete] = useState<any>(null);
+
+    const { canCreate, canEdit, canDelete } = usePermissions();
 
     const loadData = async () => {
         try {
@@ -99,15 +102,17 @@ export const Personal: React.FC = () => {
                             className="bg-white border border-gray-200 rounded-xl py-2.5 pl-11 pr-6 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/50 transition-all w-64 shadow-sm"
                         />
                     </div>
-                    <button
-                        onClick={() => {
-                            setEditingPerson(null);
-                            setIsModalOpen(true);
-                        }}
-                        className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-primary text-white font-semibold hover:brightness-110 shadow-lg shadow-brand-primary/10 transition-all active:scale-95"
-                    >
-                        <Plus className="w-5 h-5" /> Añadir Personal
-                    </button>
+                    {canCreate('personal') && (
+                        <button
+                            onClick={() => {
+                                setEditingPerson(null);
+                                setIsModalOpen(true);
+                            }}
+                            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-primary text-white font-semibold hover:brightness-110 shadow-lg shadow-brand-primary/10 transition-all active:scale-95"
+                        >
+                            <Plus className="w-5 h-5" /> Añadir Personal
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -216,18 +221,22 @@ export const Personal: React.FC = () => {
                             </div>
 
                             <div className="flex gap-4 pt-6 border-t border-gray-200">
-                                <button
-                                    onClick={() => handleEdit(selectedPerson)}
-                                    className="flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-2xl border-2 border-brand-primary text-brand-primary text-xs font-black uppercase tracking-widest hover:bg-brand-primary hover:text-white transition-all active:scale-95"
-                                >
-                                    <Edit3 className="w-4 h-4" /> Editar Perfil
-                                </button>
-                                <button
-                                    onClick={() => setPersonToDelete(selectedPerson)}
-                                    className="flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-brand-error/10 text-brand-error text-xs font-black uppercase tracking-widest hover:bg-brand-error hover:text-white transition-all active:scale-95"
-                                >
-                                    <Trash2 className="w-4 h-4" /> Eliminar
-                                </button>
+                                {canEdit('personal') && (
+                                    <button
+                                        onClick={() => handleEdit(selectedPerson)}
+                                        className="flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-2xl border-2 border-brand-primary text-brand-primary text-xs font-black uppercase tracking-widest hover:bg-brand-primary hover:text-white transition-all active:scale-95"
+                                    >
+                                        <Edit3 className="w-4 h-4" /> Editar Perfil
+                                    </button>
+                                )}
+                                {canDelete('personal') && (
+                                    <button
+                                        onClick={() => setPersonToDelete(selectedPerson)}
+                                        className="flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-brand-error/10 text-brand-error text-xs font-black uppercase tracking-widest hover:bg-brand-error hover:text-white transition-all active:scale-95"
+                                    >
+                                        <Trash2 className="w-4 h-4" /> Eliminar
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
