@@ -11,7 +11,7 @@ interface UserProfileModalProps {
 }
 
 export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) => {
-    const { user, signOut } = useAuth();
+    const { user, profile, refreshProfile, signOut } = useAuth();
     const [loading, setLoading] = useState(false);
     const [fullName, setFullName] = useState('');
     const [phone, setPhone] = useState('');
@@ -31,11 +31,14 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
     });
 
     useEffect(() => {
-        if (user) {
+        if (profile) {
+            setFullName(profile.full_name || '');
+            setPhone(profile.phone || '');
+        } else if (user) {
             setFullName(user.user_metadata?.full_name || '');
             setPhone(user.user_metadata?.phone || '');
         }
-    }, [user, isOpen]);
+    }, [profile, user, isOpen]);
 
     if (!isOpen || !user) return null;
 
@@ -74,14 +77,26 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
             setMessage(null);
 
             try {
-                const { error } = await supabase.auth.updateUser({
+                // Actualizar tabla user_profiles (Fuente de la verdad)
+                const { error: profileError } = await supabase
+                    .from('user_profiles')
+                    .update({
+                        full_name: fullName,
+                        phone: phone,
+                    })
+                    .eq('id', user.id);
+
+                if (profileError) throw profileError;
+
+                // Opcional: Actualizar metadata de auth para mantener sincronía
+                await supabase.auth.updateUser({
                     data: {
                         full_name: fullName,
                         phone: phone,
                     }
                 });
 
-                if (error) throw error;
+                await refreshProfile(); // Recargar datos del contexto
                 setMessage({ type: 'success', text: 'Perfil actualizado correctamente' });
 
                 setTimeout(() => {
@@ -111,7 +126,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                         <div className="absolute -bottom-10 left-1/2 -translate-x-1/2">
                             <div className="relative group">
                                 <div className="p-1 bg-white rounded-full shadow-lg">
-                                    <UserAvatar user={user} size="xl" />
+                                    <UserAvatar user={user} name={fullName} size="xl" />
                                 </div>
                                 {/* Camera icon for visual cue */}
                                 <div className="absolute bottom-1 right-1 p-1.5 bg-brand-primary rounded-full border-2 border-white text-white shadow-sm cursor-pointer hover:bg-brand-dark transition-colors">

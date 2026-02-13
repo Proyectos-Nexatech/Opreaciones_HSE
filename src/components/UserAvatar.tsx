@@ -8,15 +8,16 @@ interface UserAvatarProps {
             avatar_url?: string;
         };
     } | null;
+    name?: string; // Explicit name override
     className?: string; // For wrapper sizing
     size?: 'sm' | 'md' | 'lg' | 'xl'; // Standard sizes
 }
 
-export const UserAvatar: React.FC<UserAvatarProps> = ({ user, className = '', size = 'md' }) => {
+export const UserAvatar: React.FC<UserAvatarProps> = ({ user, name, className = '', size = 'md' }) => {
     const [imageError, setImageError] = useState(false);
 
     const email = user?.email || '';
-    const name = user?.user_metadata?.full_name || email.split('@')[0] || 'U';
+    const displayName = name || user?.user_metadata?.full_name || email.split('@')[0] || 'U';
     const avatarUrl = user?.user_metadata?.avatar_url;
 
     const getInitials = (name: string) => {
@@ -25,7 +26,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({ user, className = '', si
         return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     };
 
-    const initials = getInitials(name);
+    const initials = getInitials(displayName);
 
     // Size mappings for container
     const sizeClasses = {
@@ -42,7 +43,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({ user, className = '', si
         'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500',
         'bg-purple-500', 'bg-pink-500', 'bg-indigo-500', 'bg-teal-500'
     ];
-    const colorIndex = name.length % colors.length;
+    const colorIndex = displayName.length % colors.length;
     const bgColor = colors[colorIndex];
 
     if (avatarUrl && !imageError) {
@@ -50,7 +51,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({ user, className = '', si
             <div className={containerClasses}>
                 <img
                     src={avatarUrl}
-                    alt={name}
+                    alt={displayName}
                     className="w-full h-full object-cover"
                     onError={() => setImageError(true)}
                 />

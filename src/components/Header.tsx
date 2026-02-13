@@ -5,7 +5,7 @@ import { UserProfileModal } from './UserProfileModal';
 import { UserAvatar } from './UserAvatar';
 
 export const Header: React.FC = () => {
-    const { user } = useAuth();
+    const { user, profile } = useAuth();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
 
     return (
@@ -44,14 +44,14 @@ export const Header: React.FC = () => {
                     >
                         <div className="text-right hidden sm:block">
                             <p className="text-sm font-bold text-brand-text group-hover:text-brand-primary transition-colors">
-                                {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuario'}
+                                {profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuario'}
                             </p>
                             <p className="text-[11px] text-brand-text-muted font-medium">
                                 {user?.email || 'No conectado'}
                             </p>
                         </div>
                         <div className="relative">
-                            <UserAvatar user={user} size="md" />
+                            <UserAvatar user={user} name={profile?.full_name} size="md" />
                             <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-[2.5px] border-white shadow-sm" />
                         </div>
                     </div>
