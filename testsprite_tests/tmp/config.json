@@ -7,13 +7,13 @@
     "projectName": "Operaciones_HSE",
     "projectPath": "c:\\Users\\EQC0670\\Operaciones_HSE",
     "testIds": [
-      "TC001"
+      "TC013"
     ],
-    "additionalInstruction": "Ejecutar SOLAMENTE el caso de prueba TC001 para verificar la creación de permisos. El objetivo es aislar la prueba para evitar timeouts de red. Asegúrate de esperar a que los elementos del formulario estén completamente cargados antes de interactuar.",
+    "additionalInstruction": "Ensure to use the new registration flow where users are inactive by default. The admin user credentials should be retrieved from the environment variables or a seeded admin account. Admin must navigate to Personnel page to activate user.",
     "envs": {
       "API_KEY": "sk-user-l09_pCwwhYLd3FHOVOBNCk1fNLQtSz6-lzCFbVKThI2A-tONlqtq2vlNHdFFgnA8pW610Q-1EMs1YqCxAvaong-TTsPanEJ9-khbtszO6_lNDxVN8mpEBtxq0FIRPRECUPc"
     }
   },
-  "serverPort": 61761,
-  "proxy": "http://427813c0-7a38-4c0c-9093-bb5852c135ce:lirI3KJxcnWOvf3bccEfYPeNRRJ8ECUo@tun.testsprite.com:8080"
+  "serverPort": 52862,
+  "proxy": "http://b5f089ae-841b-4d50-9282-6b953198a5d1:dOnPXA77C2OEdvRYGoY70UOvp9x3ITEH@tun.testsprite.com:8080"
 }

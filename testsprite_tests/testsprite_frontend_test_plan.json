@@ -1,154 +1,150 @@
 [
   {
     "id": "TC001",
-    "title": "Successful multi-step work permit request with data persistence",
-    "description": "Verify that a user can successfully complete and submit a multi-step work permit request form, with form data saved in localStorage to persist across page reloads or session interruptions.",
+    "title": "Work Permit Multi-Step Form Complete Flow",
+    "description": "Verify that a permittee can complete the multi-step work permit form, with progress saved in localStorage, and submit successfully.",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to Nuevo Permiso (New Permit) page"
+        "description": "Navigate to Nuevo Permiso work permit page"
       },
       {
         "type": "action",
-        "description": "Fill out step 1 of the permit form with valid data"
-      },
-      {
-        "type": "action",
-        "description": "Proceed to step 2 and fill out all required fields correctly"
-      },
-      {
-        "type": "action",
-        "description": "Simulate a page reload"
+        "description": "Fill out initial step of the form with valid data"
       },
       {
         "type": "assertion",
-        "description": "Verify that all previously entered form data is restored from localStorage"
+        "description": "Check that localStorage has saved the entered form data"
       },
       {
         "type": "action",
-        "description": "Complete remaining steps and submit the permit request"
+        "description": "Proceed to next step and fill in all mandatory fields"
       },
       {
         "type": "assertion",
-        "description": "Verify that the permit request is submitted successfully and confirmation is shown"
+        "description": "Form validations pass and allow progression to next steps"
+      },
+      {
+        "type": "action",
+        "description": "Complete the final step of the permit request form and submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm success message is displayed and permit data is saved"
       }
     ]
   },
   {
     "id": "TC002",
-    "title": "Form validation enforces mandatory gas testing for Hot Work permits",
-    "description": "Verify that the permit form enforces conditional validation that requires gas testing data to be entered when the permit type is Hot Work.",
+    "title": "Work Permit Form Validation - Conditional Gas Testing Requirement",
+    "description": "Ensure that the form enforces mandatory gas testing data when the permit type is Hot Work or Confined Space Entry.",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Start a new work permit request and select 'Hot Work' as permit type"
+        "description": "Open Nuevo Permiso form and select 'Hot Work' as permit type"
       },
       {
         "type": "action",
-        "description": "Attempt to proceed without entering gas testing data"
+        "description": "Attempt to proceed without entering gas testing information"
       },
       {
         "type": "assertion",
-        "description": "Verify that the form shows validation errors requiring gas testing information"
+        "description": "Form displays validation error for missing gas testing data and blocks progression"
       },
       {
         "type": "action",
-        "description": "Enter valid gas testing data"
+        "description": "Fill in valid gas testing data"
       },
       {
         "type": "assertion",
-        "description": "Verify that validation errors are cleared and user can proceed"
+        "description": "Validation error disappears and user can proceed"
+      },
+      {
+        "type": "action",
+        "description": "Repeat above steps selecting 'Confined Space Entry' permit type"
+      },
+      {
+        "type": "assertion",
+        "description": "Gas testing data is again required and validated similarly"
       }
     ]
   },
   {
     "id": "TC003",
-    "title": "Role-based access control restricts Safety Officer permit authorization",
-    "description": "Verify that only users with the Safety Officer role can access permit authorization features, ensuring segregation of duties.",
+    "title": "Role-Based Access Control Enforcement for Work Permit Authorization",
+    "description": "Verify that only Safety Officers can authorize or close permits, enforcing segregation of duties.",
     "category": "security",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Log in as a user with Permittee role"
+        "description": "Log in as a Permittee user"
       },
       {
         "type": "action",
-        "description": "Navigate to permits pending authorization"
+        "description": "Attempt to access permit authorization or closure actions"
       },
       {
         "type": "assertion",
-        "description": "Verify that authorization controls are not visible or accessible"
+        "description": "Access denied or UI options are disabled for these actions"
       },
       {
         "type": "action",
-        "description": "Log out and log in as a Safety Officer user"
+        "description": "Log out and log in as Safety Officer"
       },
       {
         "type": "action",
-        "description": "Navigate to permits pending authorization"
+        "description": "Access pending permits and perform authorization and closure"
       },
       {
         "type": "assertion",
-        "description": "Verify that authorization controls are visible and fully functional"
+        "description": "Actions succeed with digital signature capture and permit status updates"
       }
     ]
   },
   {
     "id": "TC004",
-    "title": "CRUD operations on personnel records by administrator",
-    "description": "Verify that an administrator can create, read, update, and delete personnel profiles correctly within the personnel management module.",
+    "title": "Persistence of Work Permit Form Data in localStorage on Page Refresh",
+    "description": "Ensure that partially completed form data in the work permit form persists in localStorage and is restored upon page reload to prevent data loss.",
     "category": "functional",
-    "priority": "High",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Log in as an Administrator"
+        "description": "Navigate to Nuevo Permiso form"
       },
       {
         "type": "action",
-        "description": "Open Personnel Management page"
-      },
-      {
-        "type": "action",
-        "description": "Create a new personnel record with valid data"
+        "description": "Fill form fields up to step 2"
       },
       {
         "type": "assertion",
-        "description": "Verify that the new personnel record appears in the list"
+        "description": "localStorage contains current form data"
       },
       {
         "type": "action",
-        "description": "Select the created personnel and update fields"
+        "description": "Reload the page"
       },
       {
         "type": "assertion",
-        "description": "Verify that updates are saved and reflected in the UI"
-      },
-      {
-        "type": "action",
-        "description": "Delete the created personnel record"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify that the personnel record is removed from the list"
+        "description": "Form fields repopulate with data from localStorage"
       }
     ]
   },
   {
     "id": "TC005",
-    "title": "Realtime incident reporting updates with latency under 120 ms",
-    "description": "Verify that incident reports submitted are reflected on the incident monitoring interface with realtime updates within the specified latency thresholds.",
+    "title": "Incident Reporting Real-Time Update Verification",
+    "description": "Verify that incidents submitted through the reporting interface appear in real-time on relevant user dashboards within specified latency thresholds.",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Log in as any user with access to event reporting"
+        "description": "Log in as any user and navigate to Ocurrio Asi page"
       },
       {
         "type": "action",
@@ -156,161 +152,291 @@
       },
       {
         "type": "assertion",
-        "description": "Verify that the incident appears on the real-time monitoring dashboard within 120 milliseconds"
+        "description": "Incident appears immediately in incident list with latency under 120ms for API and 27ms for DB queries"
+      },
+      {
+        "type": "action",
+        "description": "Confirm that the incident also updates on Dashboard page"
+      },
+      {
+        "type": "assertion",
+        "description": "Dashboard reflects the newly reported incident without delay"
       }
     ]
   },
   {
     "id": "TC006",
-    "title": "Export reports include corporate header and cost center aggregation",
-    "description": "Verify that exported PDF and Excel reports contain the correct corporate branding headers and data aggregations grouped by cost centers and service orders.",
+    "title": "Personnel Management CRUD Operations",
+    "description": "Test create, read, update, and delete operations for field personnel profiles via the personnel management module.",
     "category": "functional",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to reports export interface"
+        "description": "Log in as Administrator or authorized user"
       },
       {
         "type": "action",
-        "description": "Generate export in PDF format"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify the PDF includes corporate headers and grouped data by cost center and service order"
+        "description": "Navigate to Personal management page"
       },
       {
         "type": "action",
-        "description": "Generate export in Excel format"
+        "description": "Create a new personnel profile with valid details"
       },
       {
         "type": "assertion",
-        "description": "Verify the Excel file includes the corporate header and correctly aggregates data by cost center and service order"
+        "description": "New personnel appears in list with correct details"
+      },
+      {
+        "type": "action",
+        "description": "Edit the personnel profile and update some fields"
+      },
+      {
+        "type": "assertion",
+        "description": "Changes are saved and displayed accurately"
+      },
+      {
+        "type": "action",
+        "description": "Delete the personnel profile"
+      },
+      {
+        "type": "assertion",
+        "description": "Personnel is removed from the list without errors"
       }
     ]
   },
   {
     "id": "TC007",
-    "title": "Permit form rejects submission if required fields are incomplete",
-    "description": "Ensure form validation prevents submission when required fields are not filled, maintaining at least 98.7% accuracy in validation enforcement.",
-    "category": "error handling",
-    "priority": "High",
+    "title": "Dashboard Key Metrics and Task Display Integrity",
+    "description": "Verify that the Dashboard displays accurate and up-to-date HSE metrics and active operational tasks to users based on their roles.",
+    "category": "functional",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Start a new permit request"
+        "description": "Log in as each role: Admin, Safety Officer, Supervisor, Permittee"
       },
       {
         "type": "action",
-        "description": "Leave one or more required fields empty"
-      },
-      {
-        "type": "action",
-        "description": "Attempt to submit the permit form"
+        "description": "Access Dashboard page"
       },
       {
         "type": "assertion",
-        "description": "Verify that submission is blocked and appropriate validation messages are displayed"
+        "description": "Dashboard shows correct HSE metrics and tasks relevant to the logged-in user's role"
+      },
+      {
+        "type": "assertion",
+        "description": "Metrics are updated in real-time reflecting changes such as new permits and incident reports"
       }
     ]
   },
   {
     "id": "TC008",
-    "title": "Signed URL access restrictions and expiry functionality",
-    "description": "Verify that signed URLs used to securely deliver permit and report documents expire as expected and block unauthorized access after expiration.",
+    "title": "Secure Document Access via Signed URLs",
+    "description": "Test that access to stored permits and reports via signed URLs is restricted properly and URLs expire as configured.",
     "category": "security",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Obtain a signed URL for a permit document as an authorized user"
+        "description": "Request signed URL for a sensitive document as an authorized user"
       },
       {
         "type": "assertion",
-        "description": "Verify access to the document through the signed URL is successful before expiry"
+        "description": "Access to document is granted when using valid signed URL"
       },
       {
         "type": "action",
-        "description": "Simulate time passing beyond the signed URL expiry time"
-      },
-      {
-        "type": "action",
-        "description": "Attempt to access the document using the same signed URL"
+        "description": "Attempt to access document with expired signed URL"
       },
       {
         "type": "assertion",
-        "description": "Verify that access is blocked due to URL expiration"
+        "description": "Access is denied due to URL expiration"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to use signed URL from unauthorized user account"
+      },
+      {
+        "type": "assertion",
+        "description": "Access to the document is blocked per row-level security policies"
       }
     ]
   },
   {
     "id": "TC009",
-    "title": "Dashboard displays accurate and timely HSE metrics and active tasks",
-    "description": "Verify that the dashboard loads correctly and displays up-to-date HSE metrics, active permits, and incident statuses for all users.",
+    "title": "Digital Signature Capture and Printable Document Generation",
+    "description": "Verify that Safety Officers can capture digital signatures in base64 format and generate printable permit documents with correct window communication.",
     "category": "functional",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Log in as any authorized user"
+        "description": "Log in as Safety Officer"
       },
       {
         "type": "action",
-        "description": "Navigate to the Dashboard page"
+        "description": "Open pending permit and use signature capture component to sign"
       },
       {
         "type": "assertion",
-        "description": "Verify that all key HSE metrics are displayed with current data"
+        "description": "Signature image is captured in base64 format and saved with permit data"
+      },
+      {
+        "type": "action",
+        "description": "Trigger document generation for printable permit"
       },
       {
         "type": "assertion",
-        "description": "Verify that active operational tasks and incident statuses are present and accurate"
+        "description": "Printable document opens in new window and contains signature and permit data formatted correctly"
       }
     ]
   },
   {
     "id": "TC010",
-    "title": "System uptime meets or exceeds 99.3% availability requirement",
-    "description": "Validate through monitoring and test scripts that the system remains available and responsive, achieving the required uptime benchmark.",
-    "category": "functional",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Simulate typical user workloads including permit requests, reporting, and personnel management over an extended period"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify system uptime monitoring reports availability of 99.3% or higher"
-      }
-    ]
-  },
-  {
-    "id": "TC011",
-    "title": "Signature capture stores base64 images and enables printable document generation",
-    "description": "Verify that users can capture digital signatures as base64 encoded images and that these signatures correctly propagate to printable permit documents using window communication.",
+    "title": "Report Export to PDF and Excel with Branding and Data Aggregation",
+    "description": "Validate that reports exported include corporate headers, formatted rows, and correctly aggregated data grouped by cost centers and service orders.",
     "category": "functional",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Access permit authorization page as Safety Officer"
+        "description": "Generate report with sample permits, incidents, and personnel data"
       },
       {
         "type": "action",
-        "description": "Use the signature capture component to draw and save a signature"
+        "description": "Export report as PDF"
       },
       {
         "type": "assertion",
-        "description": "Verify that signature is saved in base64 image format correctly"
+        "description": "PDF contains corporate branding, headers, and well formatted grouped data"
       },
       {
         "type": "action",
-        "description": "Generate a printable permit document"
+        "description": "Export report as Excel"
       },
       {
         "type": "assertion",
-        "description": "Verify that the signature appears correctly in the printable document via window communication"
+        "description": "Excel file contains correct aggregated data by cost centers and service orders with corporate identifiers"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Role-Based Access Denied Actions Verification",
+    "description": "Confirm that only authorized roles can perform restricted platform actions (e.g., system configuration, personnel management, permit approvals).",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as user with Supervisor or Permittee role"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to access system configuration and personnel management pages"
+      },
+      {
+        "type": "assertion",
+        "description": "Access is denied or components are hidden"
+      },
+      {
+        "type": "action",
+        "description": "Log in as Administrator"
+      },
+      {
+        "type": "action",
+        "description": "Access system configuration and manage users and roles"
+      },
+      {
+        "type": "assertion",
+        "description": "Access granted and all functionalities are available"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Permit Lifecycle Compliance with IS 17893:2022 Standard",
+    "description": "Validate that all stages of permit lifecycle (initiation, validation, authorization, execution, closure) comply strictly with IS 17893:2022 requirements using defined workflows and validations.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Initiate a new work permit with required data as per standard"
+      },
+      {
+        "type": "assertion",
+        "description": "Permit initiation captures all mandatory details according to IS 17893:2022"
+      },
+      {
+        "type": "action",
+        "description": "Submit permit for validation with automatic conditional checks"
+      },
+      {
+        "type": "assertion",
+        "description": "Form blocks completion if validations do not meet standard criteria"
+      },
+      {
+        "type": "action",
+        "description": "Authorize permit by Safety Officer capturing required approvals and signatures"
+      },
+      {
+        "type": "assertion",
+        "description": "Authorization step enforces segregation of duties and captures signatures"
+      },
+      {
+        "type": "action",
+        "description": "Mark permit as executed and later closed with final remarks"
+      },
+      {
+        "type": "assertion",
+        "description": "Permit lifecycle updates status correctly and audit trails are generated"
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "User Registration and Admin Approval Workflow",
+    "description": "Verify that a new user registration results in an 'Inactive' status, prevents login until approved, and allows an Administrator to activate the account.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Register a new user via the Registration page"
+      },
+      {
+        "type": "assertion",
+        "description": "User sees 'Account Pending Approval' message upon success"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to log in with the new unapproved account"
+      },
+      {
+        "type": "assertion",
+        "description": "Login is denied with an appropriate error message about pending approval"
+      },
+      {
+        "type": "action",
+        "description": "Log in as an Administrator"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to Personnel management and find the new user"
+      },
+      {
+        "type": "action",
+        "description": "Update the user status to 'Active'"
+      },
+      {
+        "type": "action",
+        "description": "Log out and attempt to log in as the new user again"
+      },
+      {
+        "type": "assertion",
+        "description": "Login is successful and user is redirected to the dashboard"
       }
     ]
   }
