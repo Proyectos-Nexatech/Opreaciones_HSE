@@ -5,12 +5,16 @@ export const usePermissions = () => {
     const { profile } = useAuth();
 
     const hasPermission = (permission: string) => {
-        if (!profile || !profile.role) return false;
+        if (!profile) return false;
+
+        const roleName = profile.role_name || profile.role?.name;
 
         // Admin always has full access
-        if (profile.role_name === 'Administrador' || profile.role.name === 'Administrador') {
+        if (roleName === 'Administrador' || roleName === 'Administrator') {
             return true;
         }
+
+        if (!profile.role) return false;
 
         // Check permissions array logic
         // The role object comes joined as 'role' from the query
