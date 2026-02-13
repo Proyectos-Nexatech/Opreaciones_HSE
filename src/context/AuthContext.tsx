@@ -32,6 +32,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 console.error('Error fetching profile:', error);
                 setProfile(null);
             } else {
+                if (data.status === 'Inactivo') {
+                    console.log('Usuario inactivo, cerrando sesión automático.');
+                    await supabase.auth.signOut();
+                    setSession(null);
+                    setUser(null);
+                    setProfile(null);
+                    return;
+                }
                 setProfile(data);
             }
         } catch (err) {
@@ -41,22 +49,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     useEffect(() => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
+        const initSession = async () => {
+            const {
+                data: { session },
+            } = await supabase.auth.getSession();
             setSession(session);
             setUser(session?.user ?? null);
             if (session?.user) {
-                fetchProfile(session.user.id);
+                await fetchProfile(session.user.id);
             }
             setLoading(false);
-        });
+        };
+
+        initSession();
 
         const {
             data: { subscription },
-        } = supabase.auth.onAuthStateChange((_event, session) => {
+        } = supabase.auth.onAuthStateChange(async (_event, session) => {
             setSession(session);
             setUser(session?.user ?? null);
             if (session?.user) {
-                fetchProfile(session.user.id);
+                await fetchProfile(session.user.id);
             } else {
                 setProfile(null);
             }
