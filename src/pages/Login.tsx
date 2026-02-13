@@ -60,13 +60,13 @@ export const Login = () => {
     };
 
     return (
-        <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden bg-gray-50">
+        <div className="min-h-screen w-full relative flex items-center justify-center p-4 bg-gray-50 overflow-y-auto">
             {/* Background Elements */}
             <div className="absolute top-0 w-full h-1/2 bg-blue-500" />
             <div className="absolute bottom-0 w-full h-1/2 bg-gray-50" />
 
             {/* Main Floating Card */}
-            <div className="relative w-full max-w-4xl bg-white rounded-[32px] shadow-2xl flex overflow-hidden min-h-[600px] z-10">
+            <div className="relative w-full max-w-4xl bg-white rounded-2xl lg:rounded-[32px] shadow-2xl flex flex-col lg:flex-row overflow-hidden z-10 my-4 lg:my-auto">
 
                 {/* Left Side: Visual / Illustration */}
                 <div className="hidden lg:flex w-1/2 bg-[#5D9CFF] relative items-center justify-center p-8 overflow-hidden">
@@ -77,12 +77,12 @@ export const Login = () => {
                         <img
                             src="/logo NEXATECH.png"
                             alt="Nexatech Logo"
-                            className="w-64 h-auto mb-8 drop-shadow-lg transition-transform duration-300 hover:scale-105"
+                            className="w-48 lg:w-64 h-auto mb-6 lg:mb-8 drop-shadow-lg transition-transform duration-300 hover:scale-105"
                         />
 
                         <div className="text-white">
-                            <h3 className="text-3xl font-black mb-2 tracking-tight">Operaciones HSE</h3>
-                            <p className="text-blue-100 text-base font-medium leading-relaxed">
+                            <h3 className="text-2xl lg:text-3xl font-black mb-2 tracking-tight">Operaciones HSE</h3>
+                            <p className="text-blue-100 text-sm lg:text-base font-medium leading-relaxed">
                                 Gestiona tus reportes y permisos de forma eficiente.
                             </p>
                         </div>
@@ -90,15 +90,15 @@ export const Login = () => {
                 </div>
 
                 {/* Right Side: Form */}
-                <div className="w-full lg:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-white">
+                <div className="w-full lg:w-1/2 p-6 sm:p-8 lg:p-12 flex flex-col justify-center bg-white">
                     <div className="max-w-xs mx-auto w-full">
-                        <div className="text-right mb-6">
+                        <div className="text-right mb-4 lg:mb-6">
                             <p className="text-xs text-gray-400 font-medium">Español (CO) ▼</p>
                         </div>
 
-                        <h2 className="text-3xl font-black text-gray-900 mb-8">Iniciar Sesión</h2>
+                        <h2 className="text-2xl lg:text-3xl font-black text-gray-900 mb-6 lg:mb-8">Iniciar Sesión</h2>
 
-                        <form onSubmit={handleLogin} className="space-y-5">
+                        <form onSubmit={handleLogin} className="space-y-4">
                             {error && (
                                 <div className="bg-red-50 text-red-500 p-3 rounded-xl text-xs flex items-center gap-2 font-medium">
                                     <span className="w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0" />
@@ -106,7 +106,7 @@ export const Login = () => {
                                 </div>
                             )}
 
-                            <div className="space-y-4">
+                            <div className="space-y-3 lg:space-y-4">
                                 <div className="space-y-1">
                                     <label className="text-xs font-bold text-gray-800">
                                         Correo electrónico
@@ -116,7 +116,7 @@ export const Login = () => {
                                         required
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="block w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-gray-900 placeholder-gray-400 focus:bg-white focus:border-brand-primary/50 focus:ring-4 focus:ring-brand-primary/10 transition-all text-sm"
+                                        className="block w-full px-4 py-2.5 lg:py-3 bg-gray-50 border border-gray-100 rounded-xl text-gray-900 placeholder-gray-400 focus:bg-white focus:border-brand-primary/50 focus:ring-4 focus:ring-brand-primary/10 transition-all text-sm"
                                         placeholder="usuario@empresa.com"
                                     />
                                 </div>
@@ -131,7 +131,7 @@ export const Login = () => {
                                             required
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
-                                            className="block w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-gray-900 placeholder-gray-400 focus:bg-white focus:border-brand-primary/50 focus:ring-4 focus:ring-brand-primary/10 transition-all text-sm"
+                                            className="block w-full px-4 py-2.5 lg:py-3 bg-gray-50 border border-gray-100 rounded-xl text-gray-900 placeholder-gray-400 focus:bg-white focus:border-brand-primary/50 focus:ring-4 focus:ring-brand-primary/10 transition-all text-sm"
                                             placeholder="••••••••"
                                         />
                                     </div>
@@ -153,7 +153,7 @@ export const Login = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl shadow-lg shadow-blue-500/30 text-sm font-bold text-white bg-blue-500 hover:bg-blue-600 active:scale-[0.98] transition-all duration-200"
+                                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl shadow-lg shadow-blue-500/30 text-sm font-bold text-white bg-blue-500 hover:bg-blue-600 active:scale-[0.98] transition-all duration-200"
                             >
                                 {loading ? (
                                     <Loader2 className="h-5 w-5 animate-spin" />
