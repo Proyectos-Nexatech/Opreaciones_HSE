@@ -127,8 +127,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const signOut = async () => {
-        const { error } = await supabase.auth.signOut();
-        if (error) throw error;
+        try {
+            await supabase.auth.signOut();
+        } catch (error) {
+            console.error('Error signing out:', error);
+        } finally {
+            // Always clear local state to prevent UI getting stuck
+            setSession(null);
+            setUser(null);
+            setProfile(null);
+            localStorage.removeItem('sessionToken');
+            setLoading(false);
+        }
     };
 
     const refreshProfile = async () => {
@@ -194,7 +204,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 // If the session token in DB is different from ours, someone else logged in
                 if (data && data.session_token !== currentSessionToken) {
                     await signOut();
-                    alert('Se ha iniciado sesión en otro dispositivo. Tu sesión actual se ha cerrado por seguridad.');
                 }
             }, 60000); // Check every minute
         };
@@ -215,7 +224,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         const handleTimeout = async () => {
             await signOut();
-            alert('Tu sesión ha expirado por inactividad (30 min).');
         };
 
         const resetTimer = () => {
