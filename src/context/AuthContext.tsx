@@ -22,11 +22,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const fetchProfile = async (userId: string) => {
         try {
-            const { data, error } = await supabase
+            console.log('Fetching profile for:', userId);
+
+            // Create a timeout promise
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Profile fetch timeout')), 7000)
+            );
+
+            // Execute query with race against timeout
+            const queryPromise = supabase
                 .from('user_profiles')
                 .select('*, role:role_name(*)')
                 .eq('id', userId)
                 .single();
+
+            const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
             if (error) {
                 console.error('Error fetching profile:', error);
@@ -41,45 +51,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     return;
                 }
                 setProfile(data);
+                console.log('Profile loaded successfully');
             }
         } catch (err) {
             console.error('Unexpected error fetching profile:', err);
-            setProfile(null);
+            // Don't clear profile if it was already set, unless it's a critical error
+            // But here we probably want to fail gracefuly
+            if (!profile) setProfile(null);
         }
     };
 
     useEffect(() => {
         let mounted = true;
 
-        // Safety timeout to prevent infinite loading
+        // Safety timeout to prevent infinite loading (Global UI safety)
         const safetyTimeout = setTimeout(() => {
             if (mounted && loading) {
-                console.warn('Auth loading timed out, forcing completion');
+                console.warn('Auth loading timed out (global), forcing completion');
                 setLoading(false);
             }
-        }, 8000);
+        }, 12000);
 
         const initializeAuth = async () => {
             try {
                 // 1. Get initial session
                 const { data: { session }, error } = await supabase.auth.getSession();
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Error getting session:', error);
+                    throw error;
+                }
 
                 if (mounted) {
-                    setSession(session);
-                    setUser(session?.user ?? null);
-
                     if (session?.user) {
+                        setSession(session);
+                        setUser(session.user);
+                        // Await profile fetch
                         await fetchProfile(session.user.id);
+                    } else {
+                        setSession(null);
+                        setUser(null);
                     }
                 }
             } catch (error) {
-                console.error('Error initializing session:', error);
+                console.error('Error initializing auth:', error);
             } finally {
                 if (mounted) {
                     setLoading(false);
-                    clearTimeout(safetyTimeout);
                 }
             }
         };
@@ -90,13 +108,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (!mounted) return;
 
-            console.log('Auth state change:', event); // Debug log
+            console.log('Auth state change:', event);
+
+            // Ignore INITIAL_SESSION as we handle initial load manually
+            if (event === 'INITIAL_SESSION') {
+                return;
+            }
 
             setSession(session);
             setUser(session?.user ?? null);
 
             if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
                 if (session?.user) {
+                    // Only fetch if we update the user or don't have a profile yet
                     await fetchProfile(session.user.id);
                 }
             } else if (event === 'SIGNED_OUT') {
@@ -105,7 +129,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 setUser(null);
             }
 
-            // Ensure loading is false after any auth event processing
             setLoading(false);
         });
 
@@ -149,8 +172,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         if (!user || loading) return;
 
-        let sessionInterval: any;
         let mounted = true;
+        let channel: any;
 
         const checkSession = async () => {
             // Generate or retrieve session token from localStorage
@@ -191,28 +214,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             if (error) console.error('Error registering session:', error);
 
-            // Periodic check for session validity (every 1 minute)
-            sessionInterval = setInterval(async () => {
-                if (!mounted) return;
+            // Subscribe to realtime changes
+            channel = supabase
+                .channel(`session-${user.id}`)
+                .on(
+                    'postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: 'user_sessions',
+                        filter: `user_id=eq.${user.id}`,
+                    },
+                    (payload) => {
+                        console.log('Session change detected:', payload);
+                        const newSession = payload.new as any;
+                        if (newSession && newSession.session_token !== currentSessionToken) {
+                            console.warn('Concurrent session detected via realtime. Signing out.');
+                            signOut();
+                        }
+                    }
+                )
+                .subscribe();
 
-                const { data, error } = await supabase
-                    .from('user_sessions')
-                    .select('session_token')
-                    .eq('user_id', user.id)
-                    .single();
+            // Also do a one-time check to see if we are already invalid (e.g. if we just woke up)
+            const { data } = await supabase
+                .from('user_sessions')
+                .select('session_token')
+                .eq('user_id', user.id)
+                .single();
 
-                // If the session token in DB is different from ours, someone else logged in
-                if (data && data.session_token !== currentSessionToken) {
-                    await signOut();
-                }
-            }, 60000); // Check every minute
+            if (data && data.session_token !== currentSessionToken) {
+                console.warn('Concurrent session detected via initial check. Signing out.');
+                signOut();
+            }
         };
 
         checkSession();
 
         return () => {
             mounted = false;
-            if (sessionInterval) clearInterval(sessionInterval);
+            if (channel) supabase.removeChannel(channel);
         };
     }, [user, loading]);
 
