@@ -135,6 +135,110 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (user) await fetchProfile(user.id);
     };
 
+    // Session Management Logic
+    useEffect(() => {
+        if (!user || loading) return;
+
+        let sessionInterval: any;
+        let mounted = true;
+
+        const checkSession = async () => {
+            // Generate or retrieve session token from localStorage
+            let currentSessionToken = localStorage.getItem('sessionToken');
+            if (!currentSessionToken) {
+                if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+                    currentSessionToken = crypto.randomUUID();
+                } else {
+                    currentSessionToken = Math.random().toString(36).substring(2) + Date.now().toString(36);
+                }
+                localStorage.setItem('sessionToken', currentSessionToken);
+            }
+
+            // Get IP address (best effort)
+            let ipAddress = 'Unknown';
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                if (response.ok) {
+                    const data = await response.json();
+                    ipAddress = data.ip;
+                }
+            } catch (e) {
+                console.warn('Could not fetch IP address', e);
+            }
+
+            if (!mounted) return;
+
+            // Register session in DB
+            const { error } = await supabase
+                .from('user_sessions')
+                .upsert({
+                    user_id: user.id,
+                    session_token: currentSessionToken,
+                    ip_address: ipAddress, // Note: This might be 'Unknown' if fetch fails
+                    user_agent: navigator.userAgent,
+                    last_seen: new Date().toISOString()
+                }, { onConflict: 'user_id' }); // user_id is PK, so this enforces one session per user
+
+            if (error) console.error('Error registering session:', error);
+
+            // Periodic check for session validity (every 1 minute)
+            sessionInterval = setInterval(async () => {
+                if (!mounted) return;
+
+                const { data, error } = await supabase
+                    .from('user_sessions')
+                    .select('session_token')
+                    .eq('user_id', user.id)
+                    .single();
+
+                // If the session token in DB is different from ours, someone else logged in
+                if (data && data.session_token !== currentSessionToken) {
+                    await signOut();
+                    alert('Se ha iniciado sesión en otro dispositivo. Tu sesión actual se ha cerrado por seguridad.');
+                }
+            }, 60000); // Check every minute
+        };
+
+        checkSession();
+
+        return () => {
+            mounted = false;
+            if (sessionInterval) clearInterval(sessionInterval);
+        };
+    }, [user, loading]);
+
+    // Inactivity Timeout Logic (30 minutes)
+    useEffect(() => {
+        if (!user) return;
+
+        let inactivityTimer: any;
+
+        const handleTimeout = async () => {
+            await signOut();
+            alert('Tu sesión ha expirado por inactividad (30 min).');
+        };
+
+        const resetTimer = () => {
+            if (inactivityTimer) clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(handleTimeout, 30 * 60 * 1000); // 30 minutes
+        };
+
+        // Events to track activity
+        const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+
+        const handleActivity = () => {
+            resetTimer();
+        };
+
+        events.forEach(event => document.addEventListener(event, handleActivity));
+        resetTimer(); // Initialize timer
+
+        return () => {
+            if (inactivityTimer) clearTimeout(inactivityTimer);
+            events.forEach(event => document.removeEventListener(event, handleActivity));
+        };
+    }, [user]);
+
     const value = {
         session,
         user,
