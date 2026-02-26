@@ -15,7 +15,8 @@ import {
     Trash2,
     Hash,
     Clock,
-    ShieldCheck
+    ShieldCheck,
+    Loader2
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -40,7 +41,7 @@ export const ReportesPermisos: React.FC = () => {
     const [personalDropdownOpen, setPersonalDropdownOpen] = useState(false);
     const [personalSearch, setPersonalSearch] = useState('');
     const [editingReport, setEditingReport] = useState<any>(null);
-    const [, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const formRef = useRef<HTMLFormElement>(null);
 
@@ -337,7 +338,12 @@ export const ReportesPermisos: React.FC = () => {
                                     ))}
                                 </tbody>
                             </table>
-                            {filteredReports.length === 0 && (
+                            {loading ? (
+                                <div className="flex flex-col items-center justify-center py-32 text-brand-text-muted">
+                                    <Loader2 className="w-10 h-10 animate-spin text-brand-primary mb-4" />
+                                    <p className="font-bold text-sm tracking-widest uppercase">Cargando reportes...</p>
+                                </div>
+                            ) : filteredReports.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-32 text-brand-text-muted">
                                     <div className="p-6 bg-gray-50 rounded-full mb-6 border border-gray-100">
                                         <FileText className="w-10 h-10 opacity-20" />
@@ -345,7 +351,7 @@ export const ReportesPermisos: React.FC = () => {
                                     <p className="font-bold text-sm">No se encontraron registros</p>
                                     <p className="text-xs mt-1">Intente ajustar los filtros de búsqueda</p>
                                 </div>
-                            )}
+                            ) : null}
                         </div>
 
                         {/* Footer / Pagination */}

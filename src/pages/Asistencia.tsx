@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, ChevronRight, Edit3, Trash2 } from 'lucide-react';
+import { Search, ChevronRight, Edit3, Trash2, Loader2 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { ReporteAsistenciaModal } from '../components/ReporteAsistenciaModal';
@@ -14,6 +14,7 @@ export const Asistencia: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState<any>(null);
     const [records, setRecords] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
     const loadData = async () => {
         try {
@@ -40,6 +41,8 @@ export const Asistencia: React.FC = () => {
             setRecords(flat);
         } catch (err) {
             console.error('Error loading asistencia:', err);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -109,6 +112,11 @@ export const Asistencia: React.FC = () => {
     const handleEdit = (record: any) => {
         setEditingRecord(record);
         setIsModalOpen(true);
+    };
+
+    const stopPropagation = (fn: Function) => (e: React.MouseEvent) => {
+        e.stopPropagation();
+        fn();
     };
 
     const handleDelete = async (id: string) => {
@@ -185,47 +193,64 @@ export const Asistencia: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50">
-                                    {records.map((row) => (
-                                        <tr key={row.id} className="hover:bg-gray-50/50 transition-all group cursor-pointer">
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-[11px] font-bold text-brand-text">
-                                                        {row.img}
-                                                    </div>
-                                                    <span className="text-sm font-semibold text-brand-text">{row.name}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 text-sm font-medium text-brand-text-muted">{row.h}</td>
-                                            <td className="px-6 py-4">
-                                                <span className={cn(
-                                                    "px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider",
-                                                    row.status === 'A tiempo' ? "bg-brand-success/10 text-brand-success" : "bg-brand-warning/10 text-brand-warning"
-                                                )}>
-                                                    {row.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <button
-                                                        onClick={() => handleEdit(row)}
-                                                        className="p-2 rounded-lg hover:bg-gray-50 text-brand-text-muted hover:text-brand-primary transition-all"
-                                                    >
-                                                        <Edit3 className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(row.id)}
-                                                        className="p-2 rounded-lg hover:bg-gray-50 text-brand-text-muted hover:text-red-500 transition-all"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                    <div className="w-px h-4 bg-gray-100 mx-1" />
-                                                    <button className="p-2 rounded-lg hover:bg-gray-50 text-brand-text-muted hover:text-brand-primary transition-all">
-                                                        <ChevronRight className="w-5 h-5" />
-                                                    </button>
+                                    {loading ? (
+                                        <tr>
+                                            <td colSpan={4} className="py-20 text-center">
+                                                <div className="flex flex-col items-center justify-center">
+                                                    <Loader2 className="w-8 h-8 text-brand-primary animate-spin mb-4" />
+                                                    <p className="font-bold text-sm tracking-widest uppercase text-brand-text-muted">Cargando...</p>
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))}
+                                    ) : records.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={4} className="py-20 text-center">
+                                                <p className="font-bold text-sm text-brand-text-muted">No se encontraron registros</p>
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        records.map((row) => (
+                                            <tr key={row.id} className="hover:bg-gray-50/50 transition-all group cursor-pointer">
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-[11px] font-bold text-brand-text">
+                                                            {row.img}
+                                                        </div>
+                                                        <span className="text-sm font-semibold text-brand-text">{row.name}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-sm font-medium text-brand-text-muted">{row.h}</td>
+                                                <td className="px-6 py-4">
+                                                    <span className={cn(
+                                                        "px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider",
+                                                        row.status === 'A tiempo' ? "bg-brand-success/10 text-brand-success" : "bg-brand-warning/10 text-brand-warning"
+                                                    )}>
+                                                        {row.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <button
+                                                            onClick={stopPropagation(() => handleEdit(row))}
+                                                            className="p-2 rounded-lg hover:bg-gray-50 text-brand-text-muted hover:text-brand-primary transition-all"
+                                                        >
+                                                            <Edit3 className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={stopPropagation(() => handleDelete(row.id))}
+                                                            className="p-2 rounded-lg hover:bg-gray-50 text-brand-text-muted hover:text-red-500 transition-all"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                        <div className="w-px h-4 bg-gray-100 mx-1" />
+                                                        <button className="p-2 rounded-lg hover:bg-gray-50 text-brand-text-muted hover:text-brand-primary transition-all">
+                                                            <ChevronRight className="w-5 h-5" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
                                 </tbody>
                             </table>
                         </div>

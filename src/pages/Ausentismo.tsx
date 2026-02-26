@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, ArrowUpRight, BarChart3, AlertCircle, Plus, Search, Filter, Edit3, Trash2, User } from 'lucide-react';
+import { Calendar, ArrowUpRight, BarChart3, AlertCircle, Plus, Search, Filter, Edit3, Trash2, User, Loader2 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { ReporteAusentismoModal } from '../components/ReporteAusentismoModal';
@@ -14,6 +14,7 @@ export const Ausentismo: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingReport, setEditingReport] = useState<any>(null);
     const [reports, setReports] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
     const loadData = async () => {
         try {
@@ -40,7 +41,7 @@ export const Ausentismo: React.FC = () => {
         } catch (err) {
             console.error('Error loading ausentismo:', err);
         } finally {
-            // done
+            setLoading(false);
         }
     };
 
@@ -178,54 +179,60 @@ export const Ausentismo: React.FC = () => {
                 </div>
 
                 <div className="divide-y divide-gray-50">
-                    {filtered.map((report) => (
-                        <div key={report.id} className="flex items-center justify-between p-6 hover:bg-gray-50/50 transition-all group">
-                            <div className="flex items-center gap-5">
-                                <div className="p-3 bg-brand-primary/10 rounded-2xl text-brand-primary group-hover:scale-110 transition-transform shadow-sm">
-                                    <User className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <h4 className="text-sm font-bold text-brand-text group-hover:text-brand-primary transition-colors">{report.absentPerson}</h4>
-                                    <div className="flex items-center gap-3 mt-1">
-                                        <span className={cn(
-                                            "text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm",
-                                            report.cause === 'Médico' ? "bg-red-100 text-red-600" :
-                                                report.cause === 'Familiar' ? "bg-blue-100 text-blue-600" :
-                                                    report.cause === 'Trámites' ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-600"
-                                        )}>
-                                            {report.cause}
-                                        </span>
-                                        <span className="text-[10px] font-bold text-brand-text-muted border-l border-gray-200 pl-3">{report.companyName}</span>
-                                        <span className="text-[10px] font-bold text-brand-text-muted border-l border-gray-200 pl-3">{report.costCenterName}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-6">
-                                <div className="text-right hidden sm:block">
-                                    <p className="text-[10px] font-black text-brand-text-muted uppercase tracking-widest mb-1">Fecha Reporte</p>
-                                    <p className="text-xs font-bold text-brand-text">{report.reportDate}</p>
-                                </div>
-                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button
-                                        onClick={() => handleEdit(report)}
-                                        className="p-2.5 text-brand-text-muted hover:text-brand-primary hover:bg-white rounded-xl transition-all border border-transparent hover:border-gray-100 shadow-sm"
-                                    >
-                                        <Edit3 className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(report.id)}
-                                        className="p-2.5 text-brand-text-muted hover:text-brand-error hover:bg-white rounded-xl transition-all border border-transparent hover:border-gray-100 shadow-sm"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </div>
+                    {loading ? (
+                        <div className="flex flex-col items-center justify-center py-20 text-brand-text-muted">
+                            <Loader2 className="w-8 h-8 animate-spin text-brand-primary mb-4" />
+                            <p className="font-bold text-sm tracking-widest uppercase text-brand-text-muted">Cargando...</p>
                         </div>
-                    ))}
-                    {filtered.length === 0 && (
+                    ) : filtered.length === 0 ? (
                         <div className="p-20 text-center">
                             <p className="text-brand-text-muted font-black text-sm tracking-widest uppercase">No se encontraron registros de ausentismo</p>
                         </div>
+                    ) : (
+                        filtered.map((report) => (
+                            <div key={report.id} className="flex items-center justify-between p-6 hover:bg-gray-50/50 transition-all group">
+                                <div className="flex items-center gap-5">
+                                    <div className="p-3 bg-brand-primary/10 rounded-2xl text-brand-primary group-hover:scale-110 transition-transform shadow-sm">
+                                        <User className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-bold text-brand-text group-hover:text-brand-primary transition-colors">{report.absentPerson}</h4>
+                                        <div className="flex items-center gap-3 mt-1">
+                                            <span className={cn(
+                                                "text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm",
+                                                report.cause === 'Médico' ? "bg-red-100 text-red-600" :
+                                                    report.cause === 'Familiar' ? "bg-blue-100 text-blue-600" :
+                                                        report.cause === 'Trámites' ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-600"
+                                            )}>
+                                                {report.cause}
+                                            </span>
+                                            <span className="text-[10px] font-bold text-brand-text-muted border-l border-gray-200 pl-3">{report.companyName}</span>
+                                            <span className="text-[10px] font-bold text-brand-text-muted border-l border-gray-200 pl-3">{report.costCenterName}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-6">
+                                    <div className="text-right hidden sm:block">
+                                        <p className="text-[10px] font-black text-brand-text-muted uppercase tracking-widest mb-1">Fecha Reporte</p>
+                                        <p className="text-xs font-bold text-brand-text">{report.reportDate}</p>
+                                    </div>
+                                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button
+                                            onClick={() => handleEdit(report)}
+                                            className="p-2.5 text-brand-text-muted hover:text-brand-primary hover:bg-white rounded-xl transition-all border border-transparent hover:border-gray-100 shadow-sm"
+                                        >
+                                            <Edit3 className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(report.id)}
+                                            className="p-2.5 text-brand-text-muted hover:text-brand-error hover:bg-white rounded-xl transition-all border border-transparent hover:border-gray-100 shadow-sm"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
                     )}
                 </div>
             </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ClipboardList, Filter, Search, Edit3, Trash2, Plus, Clock } from 'lucide-react';
+import { ClipboardList, Filter, Search, Edit3, Trash2, Plus, Clock, Loader2 } from 'lucide-react';
 import { ReporteNovedadesModal } from '../components/ReporteNovedadesModal';
 import { getNovedades, createNovedad, updateNovedad, deleteNovedad as deleteNovedadService } from '../services/hseService';
 
@@ -8,6 +8,7 @@ export const Novedades: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingNovedad, setEditingNovedad] = useState<any>(null);
     const [novedades, setNovedades] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
     const loadData = async () => {
         try {
@@ -38,7 +39,7 @@ export const Novedades: React.FC = () => {
         } catch (err) {
             console.error('Error loading novedades:', err);
         } finally {
-            // done
+            setLoading(false);
         }
     };
 
@@ -141,64 +142,70 @@ export const Novedades: React.FC = () => {
                 </div>
 
                 <div className="p-4 md:p-8 space-y-8">
-                    {filtered.map((item) => (
-                        <div key={item.id} className="flex gap-4 md:gap-8 relative group">
-                            <div className="flex flex-col items-center">
-                                <span className="text-[11px] font-black text-brand-text-muted mb-3 font-mono bg-gray-50 px-2 py-1 rounded-lg border border-gray-100 shadow-inner group-hover:text-brand-primary transition-colors">
-                                    {item.time}
-                                </span>
-                                <div className="w-0.5 h-full bg-gray-100 flex-1 relative">
-                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-white border-4 border-brand-primary shadow-sm group-hover:scale-125 transition-transform" />
-                                </div>
-                            </div>
-                            <div className="flex-1 bg-gray-50/30 p-4 md:p-8 rounded-[32px] border border-transparent group-hover:bg-white group-hover:border-gray-100 group-hover:shadow-xl transition-all mb-4 relative overflow-hidden">
-                                {/* Glass background decoration */}
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
-
-                                <div className="flex justify-between items-start mb-4 relative z-10">
-                                    <div className="flex flex-wrap items-center gap-3">
-                                        <div className="flex items-center gap-1.5 px-3 py-1 bg-brand-primary text-white rounded-full">
-                                            <Clock className="w-3 h-3" />
-                                            <span className="text-[10px] font-black uppercase tracking-wider">{item.shift}</span>
-                                        </div>
-                                        <span className="text-[10px] font-bold text-brand-text-muted uppercase tracking-[0.1em] border-l border-gray-200 pl-3">{item.companyName}</span>
-                                        <span className="text-[10px] font-bold text-brand-text-muted uppercase tracking-[0.1em] border-l border-gray-200 pl-3 truncate max-w-[150px]">{item.costCenterName}</span>
-                                    </div>
-                                    <div className="flex items-center gap-1 opacity-10 group-hover:opacity-100 transition-opacity">
-                                        <button
-                                            onClick={() => handleEdit(item)}
-                                            className="p-2.5 text-brand-text-muted hover:text-brand-primary hover:bg-white rounded-xl transition-all border border-transparent hover:border-gray-100 shadow-sm"
-                                        >
-                                            <Edit3 className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(item.id)}
-                                            className="p-2.5 text-brand-text-muted hover:text-brand-error hover:bg-white rounded-xl transition-all border border-transparent hover:border-gray-100 shadow-sm"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </div>
-                                <div className="mb-4">
-                                    <h4 className="text-lg font-black text-brand-text tracking-tight group-hover:text-brand-primary transition-colors mb-1">{item.title}</h4>
-                                    <p className="text-xs font-bold text-brand-text-muted underline decoration-brand-primary/20 underline-offset-4">Por: {item.reporter}</p>
-                                </div>
-                                <p className="text-sm font-semibold text-brand-text-muted leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity">{item.cause}</p>
-
-                                <div className="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
-                                    <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">OS: {item.serviceOrder}</span>
-                                    <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">{item.reportDate}</span>
-                                </div>
-                            </div>
+                    {loading ? (
+                        <div className="flex flex-col items-center justify-center py-20 text-brand-text-muted">
+                            <Loader2 className="w-8 h-8 animate-spin text-brand-primary mb-4" />
+                            <p className="font-bold text-sm tracking-widest uppercase text-brand-text-muted">Cargando...</p>
                         </div>
-                    ))}
-                    {filtered.length === 0 && (
+                    ) : filtered.length === 0 ? (
                         <div className="p-20 text-center">
                             <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
                                 <Search className="w-6 h-6 text-gray-300" />
                             </div>
                             <p className="text-brand-text-muted font-black text-sm tracking-widest uppercase">No se encontraron registros</p>
                         </div>
+                    ) : (
+                        filtered.map((item) => (
+                            <div key={item.id} className="flex gap-4 md:gap-8 relative group">
+                                <div className="flex flex-col items-center">
+                                    <span className="text-[11px] font-black text-brand-text-muted mb-3 font-mono bg-gray-50 px-2 py-1 rounded-lg border border-gray-100 shadow-inner group-hover:text-brand-primary transition-colors">
+                                        {item.time}
+                                    </span>
+                                    <div className="w-0.5 h-full bg-gray-100 flex-1 relative">
+                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-white border-4 border-brand-primary shadow-sm group-hover:scale-125 transition-transform" />
+                                    </div>
+                                </div>
+                                <div className="flex-1 bg-gray-50/30 p-4 md:p-8 rounded-[32px] border border-transparent group-hover:bg-white group-hover:border-gray-100 group-hover:shadow-xl transition-all mb-4 relative overflow-hidden">
+                                    {/* Glass background decoration */}
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                                    <div className="flex justify-between items-start mb-4 relative z-10">
+                                        <div className="flex flex-wrap items-center gap-3">
+                                            <div className="flex items-center gap-1.5 px-3 py-1 bg-brand-primary text-white rounded-full">
+                                                <Clock className="w-3 h-3" />
+                                                <span className="text-[10px] font-black uppercase tracking-wider">{item.shift}</span>
+                                            </div>
+                                            <span className="text-[10px] font-bold text-brand-text-muted uppercase tracking-[0.1em] border-l border-gray-200 pl-3">{item.companyName}</span>
+                                            <span className="text-[10px] font-bold text-brand-text-muted uppercase tracking-[0.1em] border-l border-gray-200 pl-3 truncate max-w-[150px]">{item.costCenterName}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1 opacity-10 group-hover:opacity-100 transition-opacity">
+                                            <button
+                                                onClick={() => handleEdit(item)}
+                                                className="p-2.5 text-brand-text-muted hover:text-brand-primary hover:bg-white rounded-xl transition-all border border-transparent hover:border-gray-100 shadow-sm"
+                                            >
+                                                <Edit3 className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(item.id)}
+                                                className="p-2.5 text-brand-text-muted hover:text-brand-error hover:bg-white rounded-xl transition-all border border-transparent hover:border-gray-100 shadow-sm"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="mb-4">
+                                        <h4 className="text-lg font-black text-brand-text tracking-tight group-hover:text-brand-primary transition-colors mb-1">{item.title}</h4>
+                                        <p className="text-xs font-bold text-brand-text-muted underline decoration-brand-primary/20 underline-offset-4">Por: {item.reporter}</p>
+                                    </div>
+                                    <p className="text-sm font-semibold text-brand-text-muted leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity">{item.cause}</p>
+
+                                    <div className="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
+                                        <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">OS: {item.serviceOrder}</span>
+                                        <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">{item.reportDate}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
                     )}
                 </div>
             </div>

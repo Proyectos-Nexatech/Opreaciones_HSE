@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldAlert, Search, Plus, Trash2, Edit3 } from 'lucide-react';
+import { ShieldAlert, Search, Plus, Trash2, Edit3, Loader2 } from 'lucide-react';
 import { ReporteEventoModal } from '../components/ReporteEventoModal';
 import { getEventos, deleteEvento, createEvento, updateEvento } from '../services/hseService';
 
@@ -9,6 +9,7 @@ export const EventosAccidentes: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingReport, setEditingReport] = useState<any>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [loading, setLoading] = useState(true);
 
     const loadData = async () => {
         try {
@@ -41,7 +42,7 @@ export const EventosAccidentes: React.FC = () => {
         } catch (err) {
             console.error('Error loading eventos:', err);
         } finally {
-            // done
+            setLoading(false);
         }
     };
 
@@ -178,49 +179,66 @@ export const EventosAccidentes: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
-                            {filteredReports.map((report) => (
-                                <tr key={report.id} className="hover:bg-gray-50/50 transition-all group">
-                                    <td className="px-6 py-4">
-                                        <p className="text-sm font-bold text-brand-text">{report.fechaReporte}</p>
-                                        <p className="text-[10px] text-brand-text-muted uppercase font-bold">{report.jornada}</p>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <p className="text-sm font-bold text-brand-text">{report.empresaName}</p>
-                                        <p className="text-[10px] text-brand-text-muted uppercase font-bold">{report.centroName}</p>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <p className="text-sm font-semibold text-brand-text max-w-xs truncate">{report.detalleSituaciones}</p>
-                                        <p className="text-[10px] text-brand-error font-bold uppercase">{report.actoCondicion}</p>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <p className="text-sm font-bold text-brand-text">{report.personaName}</p>
-                                        <p className="text-[10px] text-brand-text-muted uppercase font-bold">Ref: {report.supervisorName}</p>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex gap-2">
-                                            {report.numIncidentes > 0 && <span className="px-2 py-0.5 bg-brand-error/10 text-brand-error text-[10px] font-bold rounded-lg">INC: {report.numIncidentes}</span>}
-                                            {report.numAuxilios > 0 && <span className="px-2 py-0.5 bg-brand-primary/10 text-brand-primary text-[10px] font-bold rounded-lg">AUX: {report.numAuxilios}</span>}
-                                            {report.numTratamientos > 0 && <span className="px-2 py-0.5 bg-brand-warning/10 text-brand-warning text-[10px] font-bold rounded-lg">TRAT: {report.numTratamientos}</span>}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button
-                                                onClick={() => handleEdit(report)}
-                                                className="p-2 text-brand-text-muted hover:text-brand-primary hover:bg-white rounded-lg transition-all shadow-sm border border-transparent hover:border-gray-100"
-                                            >
-                                                <Edit3 className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(report.id)}
-                                                className="p-2 text-brand-text-muted hover:text-brand-error hover:bg-white rounded-lg transition-all shadow-sm border border-transparent hover:border-gray-100"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
+                            {loading ? (
+                                <tr>
+                                    <td colSpan={6} className="py-20 text-center">
+                                        <div className="flex flex-col items-center justify-center">
+                                            <Loader2 className="w-8 h-8 text-brand-primary animate-spin mb-4" />
+                                            <p className="font-bold text-sm tracking-widest uppercase text-brand-text-muted">Cargando...</p>
                                         </div>
                                     </td>
                                 </tr>
-                            ))}
+                            ) : filteredReports.length === 0 ? (
+                                <tr>
+                                    <td colSpan={6} className="py-20 text-center">
+                                        <p className="font-bold text-sm text-brand-text-muted">No se encontraron registros</p>
+                                    </td>
+                                </tr>
+                            ) : (
+                                filteredReports.map((report) => (
+                                    <tr key={report.id} className="hover:bg-gray-50/50 transition-all group">
+                                        <td className="px-6 py-4">
+                                            <p className="text-sm font-bold text-brand-text">{report.fechaReporte}</p>
+                                            <p className="text-[10px] text-brand-text-muted uppercase font-bold">{report.jornada}</p>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <p className="text-sm font-bold text-brand-text">{report.empresaName}</p>
+                                            <p className="text-[10px] text-brand-text-muted uppercase font-bold">{report.centroName}</p>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <p className="text-sm font-semibold text-brand-text max-w-xs truncate">{report.detalleSituaciones}</p>
+                                            <p className="text-[10px] text-brand-error font-bold uppercase">{report.actoCondicion}</p>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <p className="text-sm font-bold text-brand-text">{report.personaName}</p>
+                                            <p className="text-[10px] text-brand-text-muted uppercase font-bold">Ref: {report.supervisorName}</p>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex gap-2">
+                                                {report.numIncidentes > 0 && <span className="px-2 py-0.5 bg-brand-error/10 text-brand-error text-[10px] font-bold rounded-lg">INC: {report.numIncidentes}</span>}
+                                                {report.numAuxilios > 0 && <span className="px-2 py-0.5 bg-brand-primary/10 text-brand-primary text-[10px] font-bold rounded-lg">AUX: {report.numAuxilios}</span>}
+                                                {report.numTratamientos > 0 && <span className="px-2 py-0.5 bg-brand-warning/10 text-brand-warning text-[10px] font-bold rounded-lg">TRAT: {report.numTratamientos}</span>}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    onClick={() => handleEdit(report)}
+                                                    className="p-2 text-brand-text-muted hover:text-brand-primary hover:bg-white rounded-lg transition-all shadow-sm border border-transparent hover:border-gray-100"
+                                                >
+                                                    <Edit3 className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(report.id)}
+                                                    className="p-2 text-brand-text-muted hover:text-brand-error hover:bg-white rounded-lg transition-all shadow-sm border border-transparent hover:border-gray-100"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
