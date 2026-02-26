@@ -45,7 +45,10 @@ export async function deleteSupervisorHSE(id: string) {
 export async function getPersonal() {
     const { data, error } = await supabase
         .from('personal_hse')
-        .select('*')
+        .select(`
+            *,
+            centro:centro_costo_id(id, name, code)
+        `)
         .order('name');
     if (error) throw error;
     return data;

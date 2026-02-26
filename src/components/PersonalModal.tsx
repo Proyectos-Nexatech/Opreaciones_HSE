@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, User, Mail, Phone, Briefcase, MapPin } from 'lucide-react';
+import { X, User, Mail, Phone, Briefcase, MapPin, Building2 } from 'lucide-react';
+import { getCentrosCosto } from '../services/hseService';
 
 interface PersonalModalProps {
     isOpen: boolean;
@@ -9,18 +10,35 @@ interface PersonalModalProps {
 }
 
 export const PersonalModal: React.FC<PersonalModalProps> = ({ isOpen, onClose, onSave, initialData }) => {
+    const [centros, setCentros] = useState<any[]>([]);
     const [formData, setFormData] = useState({
         name: '',
         role: '',
         area: '',
         status: 'Activo',
         email: '',
-        phone: ''
+        phone: '',
+        centro_costo_id: ''
     });
 
     useEffect(() => {
+        const fetchCentros = async () => {
+            try {
+                const data = await getCentrosCosto();
+                setCentros(data || []);
+            } catch (err) {
+                console.error('Error fetching centros de costo:', err);
+            }
+        };
+        fetchCentros();
+    }, []);
+
+    useEffect(() => {
         if (initialData) {
-            setFormData(initialData);
+            setFormData({
+                ...initialData,
+                centro_costo_id: initialData.centro_costo_id || ''
+            });
         } else {
             setFormData({
                 name: '',
@@ -28,7 +46,8 @@ export const PersonalModal: React.FC<PersonalModalProps> = ({ isOpen, onClose, o
                 area: '',
                 status: 'Activo',
                 email: '',
-                phone: ''
+                phone: '',
+                centro_costo_id: ''
             });
         }
     }, [initialData, isOpen]);
@@ -61,12 +80,12 @@ export const PersonalModal: React.FC<PersonalModalProps> = ({ isOpen, onClose, o
                             <p className="text-white/70 text-xs font-bold uppercase tracking-[0.2em]">Gestión de Personal</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="relative z-10 p-3 hover:bg-white/20 rounded-2xl transition-all active:scale-90 bg-white/10">
+                    <button type="button" onClick={onClose} className="relative z-10 p-3 hover:bg-white/20 rounded-2xl transition-all active:scale-90 bg-white/10">
                         <X className="w-6 h-6" />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
                     <div className="space-y-2">
                         <label className="text-[13px] font-bold text-gray-500 ml-1">Nombre Completo</label>
                         <div className="relative">
@@ -79,6 +98,24 @@ export const PersonalModal: React.FC<PersonalModalProps> = ({ isOpen, onClose, o
                                 className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary"
                                 placeholder="Ej: Juan Perez"
                             />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-[13px] font-bold text-gray-500 ml-1">Centro de Costo</label>
+                        <div className="relative">
+                            <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <select
+                                required
+                                value={formData.centro_costo_id}
+                                onChange={(e) => setFormData({ ...formData, centro_costo_id: e.target.value })}
+                                className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary appearance-none"
+                            >
+                                <option value="">Seleccione un Centro de Costo</option>
+                                {centros.map(centro => (
+                                    <option key={centro.id} value={centro.id}>{centro.name} ({centro.code})</option>
+                                ))}
+                            </select>
                         </div>
                     </div>
 
@@ -99,7 +136,7 @@ export const PersonalModal: React.FC<PersonalModalProps> = ({ isOpen, onClose, o
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-[13px] font-bold text-gray-500 ml-1">Área / Proyecto</label>
+                            <label className="text-[13px] font-bold text-gray-500 ml-1">Área / Ubicación Física</label>
                             <div className="relative">
                                 <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                 <input
@@ -107,7 +144,7 @@ export const PersonalModal: React.FC<PersonalModalProps> = ({ isOpen, onClose, o
                                     type="text"
                                     value={formData.area}
                                     onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                                    className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-sm text-gray-800 focus:outline-none"
+                                    className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
                                 />
                             </div>
                         </div>
@@ -116,7 +153,7 @@ export const PersonalModal: React.FC<PersonalModalProps> = ({ isOpen, onClose, o
                             <select
                                 value={formData.status}
                                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                                className="w-full bg-white border border-gray-200 rounded-xl py-3 px-4 text-sm text-gray-800 focus:outline-none"
+                                className="w-full bg-white border border-gray-200 rounded-xl py-3 px-4 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
                             >
                                 <option value="Activo">Activo</option>
                                 <option value="Inactivo">Inactivo</option>
@@ -134,7 +171,7 @@ export const PersonalModal: React.FC<PersonalModalProps> = ({ isOpen, onClose, o
                                 type="email"
                                 value={formData.email}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-sm text-gray-800 focus:outline-none"
+                                className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
                             />
                         </div>
                     </div>
@@ -148,12 +185,12 @@ export const PersonalModal: React.FC<PersonalModalProps> = ({ isOpen, onClose, o
                                 type="tel"
                                 value={formData.phone}
                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-sm text-gray-800 focus:outline-none"
+                                className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
                             />
                         </div>
                     </div>
 
-                    <div className="flex gap-4 pt-4">
+                    <div className="flex gap-4 pt-4 sticky bottom-0 bg-white shadow-[0_-10px_10px_-10px_rgba(0,0,0,0.1)] py-2">
                         <button type="button" onClick={onClose} className="flex-1 py-3.5 rounded-xl font-bold bg-gray-50 text-gray-500 hover:bg-gray-100 transition-all">
                             Cancelar
                         </button>

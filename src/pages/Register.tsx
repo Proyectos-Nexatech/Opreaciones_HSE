@@ -23,6 +23,9 @@ export const Register = () => {
             });
 
             if (error) throw error;
+
+
+
             setSuccess(true);
         } catch (err: any) {
             setError(err.message || 'Error al registrarse');

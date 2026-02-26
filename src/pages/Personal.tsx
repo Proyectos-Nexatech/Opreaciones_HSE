@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Mail, Phone, Briefcase, MapPin, Eye, Edit3, Trash2, Loader2, X, AlertTriangle } from 'lucide-react';
+import { Search, Plus, Mail, Phone, Briefcase, MapPin, Eye, Edit3, Trash2, Loader2, X, AlertTriangle, Building2 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getPersonal, createPersonal, updatePersonal, deletePersonal } from '../services/hseService';
@@ -48,7 +48,8 @@ export const Personal: React.FC = () => {
                 phone: data.phone,
                 area: data.area,
                 role: data.role,
-                status: data.status
+                status: data.status,
+                centro_costo_id: data.centro_costo_id || null
             };
 
             if (editingPerson) {
@@ -193,6 +194,7 @@ export const Personal: React.FC = () => {
                                     { icon: Mail, label: 'Correo Corporativo', value: selectedPerson.email },
                                     { icon: Phone, label: 'Teléfono de Contacto', value: selectedPerson.phone },
                                     { icon: MapPin, label: 'Zona / Area Asignada', value: selectedPerson.area },
+                                    { icon: Building2, label: 'Centro de Costo', value: selectedPerson.centro?.name ? `${selectedPerson.centro.name} (${selectedPerson.centro.code})` : 'No asignado' },
                                 ].map((item, i) => (
                                     <div key={i} className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm group/item">
                                         <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-brand-primary group-hover/item:bg-brand-primary group-hover/item:text-white transition-all">

@@ -40,24 +40,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             if (error) {
                 console.error('Error fetching profile:', error);
-                setProfile(null);
+                // Si ocurre un error, no eliminamos el perfil si ya existía para no romper la UI en refetches.
+                if (!profile) setProfile(null);
             } else {
                 if (data.status === 'Inactivo') {
                     console.log('Usuario inactivo, cerrando sesión automático.');
-                    await supabase.auth.signOut();
-                    setSession(null);
-                    setUser(null);
-                    setProfile(null);
+                    await signOut();
                     return;
                 }
                 setProfile(data);
                 console.log('Profile loaded successfully');
             }
-        } catch (err) {
-            console.error('Unexpected error fetching profile:', err);
-            // Don't clear profile if it was already set, unless it's a critical error
-            // But here we probably want to fail gracefuly
-            if (!profile) setProfile(null);
+        } catch (err: any) {
+            console.error('Unexpected error fetching profile:', err.message || err);
+            // No blanqueamos el perfil existente ante un timeout
+            if (err.message === 'Profile fetch timeout') {
+                console.warn('El fetchProfile demoró mucho, se mantiene el perfil anterior (si existe).');
+            } else if (!profile) {
+                setProfile(null);
+            }
         }
     };
 
@@ -187,32 +188,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 localStorage.setItem('sessionToken', currentSessionToken);
             }
 
-            // Get IP address (best effort)
+            // Get IP address (best effort with strict timeout to prevent hanging)
             let ipAddress = 'Unknown';
             try {
-                const response = await fetch('https://api.ipify.org?format=json');
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3000);
+                const response = await fetch('https://api.ipify.org?format=json', { signal: controller.signal });
+                clearTimeout(timeoutId);
                 if (response.ok) {
                     const data = await response.json();
                     ipAddress = data.ip;
                 }
             } catch (e) {
-                console.warn('Could not fetch IP address', e);
+                console.warn('Could not fetch IP address (timeout or error)', e);
             }
 
             if (!mounted) return;
 
-            // Register session in DB
-            const { error } = await supabase
-                .from('user_sessions')
-                .upsert({
-                    user_id: user.id,
-                    session_token: currentSessionToken,
-                    ip_address: ipAddress, // Note: This might be 'Unknown' if fetch fails
-                    user_agent: navigator.userAgent,
-                    last_seen: new Date().toISOString()
-                }, { onConflict: 'user_id' }); // user_id is PK, so this enforces one session per user
+            // Register session in DB (wrap in try/catch so it doesn't crash the auth flow)
+            try {
+                const { error } = await supabase
+                    .from('user_sessions')
+                    .upsert({
+                        user_id: user.id,
+                        session_token: currentSessionToken,
+                        ip_address: ipAddress,
+                        user_agent: navigator.userAgent,
+                        last_seen: new Date().toISOString()
+                    }, { onConflict: 'user_id' });
 
-            if (error) console.error('Error registering session:', error);
+                if (error) {
+                    console.error('Error registering session but continuing auth flow:', error);
+                }
+            } catch (upsertError) {
+                console.error('Unexpected error registering session:', upsertError);
+            }
 
             // Subscribe to realtime changes
             channel = supabase
