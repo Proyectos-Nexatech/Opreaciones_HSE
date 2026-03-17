@@ -379,8 +379,8 @@ export const Dashboard: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="flex-1 mt-4 h-56 min-h-[224px]">
-                        {permisosData.length > 0 ? (
+                    <div className="mt-4 h-[300px] w-full">
+                        {filteredPermisosData.length > 0 ? (
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={barData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
@@ -406,8 +406,8 @@ export const Dashboard: React.FC = () => {
                                 </BarChart>
                             </ResponsiveContainer>
                         ) : (
-                            <div className="flex h-full items-center justify-center text-xs text-gray-400 font-semibold border-2 border-dashed border-gray-100 rounded-2xl w-full">
-                                No hay registros disponibles.
+                            <div className="flex h-full items-center justify-center text-sm text-gray-400 font-semibold border-2 border-dashed border-gray-100 rounded-2xl w-full p-10 text-center">
+                                No se encontraron registros de permisos para los filtros seleccionados.
                             </div>
                         )}
                     </div>
