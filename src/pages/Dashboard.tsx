@@ -297,58 +297,18 @@ export const Dashboard: React.FC = () => {
                 <StatCard title="Incidentes (Mes)" value={(hseStats.nearMiss + hseStats.fai + hseStats.mti).toString()} trend="-15%" trendType="positive" icon={AlertCircle} />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Gráfico principal / Histórico General */}
-                <div className="lg:col-span-2 bg-white p-8 rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
-                    <div className="flex items-center justify-between mb-2">
-                        <div>
-                            <h3 className="text-2xl font-bold text-brand-text">Operaciones Totales</h3>
-                            <p className="text-brand-text-muted text-sm mt-1">Validaciones de permisos por mes por Personal HSE</p>
-                        </div>
-                        <div className="flex items-center gap-6">
-                            <select className="bg-gray-50 border-none rounded-lg py-2 px-4 text-xs font-bold text-brand-text focus:ring-2 focus:ring-brand-primary/20 outline-none cursor-pointer">
-                                <option>Este Año</option>
-                            </select>
-                        </div>
-                    </div>
+            <div className="space-y-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+                    {/* Indicadores HSE piramide (Top Left) */}
+                    <HSEPyramid 
+                        mti={hseStats.mti} 
+                        fai={hseStats.fai} 
+                        nearMiss={hseStats.nearMiss} 
+                        aci={hseStats.aci} 
+                    />
 
-                    <div className="flex-1 mt-6 h-64 min-h-[256px]">
-                        {permisosData.length > 0 ? (
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={barData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af', fontWeight: 'bold' }} dy={10} />
-                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af', fontWeight: 'bold' }} />
-                                    <Tooltip content={renderBarTooltip} cursor={{ fill: '#f9fafb' }} />
-                                    <Legend
-                                        verticalAlign="top"
-                                        align="right"
-                                        iconType="circle"
-                                        wrapperStyle={{ fontSize: '11px', fontWeight: 'bold', paddingBottom: '20px' }}
-                                    />
-                                    {supervisores.map((sup, idx) => (
-                                        <Bar
-                                            key={sup}
-                                            dataKey={sup}
-                                            stackId="a"
-                                            fill={COLORS[idx % COLORS.length]}
-                                            radius={idx === supervisores.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
-                                            maxBarSize={40}
-                                        />
-                                    ))}
-                                </BarChart>
-                            </ResponsiveContainer>
-                        ) : (
-                            <div className="flex h-full items-center justify-center text-xs text-gray-400 font-semibold border-2 border-dashed border-gray-100 rounded-2xl w-full">
-                                No hay registros de permisos disponibles.
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Panel lateral derecho: Gráfica de Torta de Permisos */}
-                <div className="space-y-8">
-                    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm h-full flex flex-col">
+                    {/* Tipos de Permisos (Top Right) */}
+                    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col">
                         <div className="flex items-center justify-between mb-2">
                             <h3 className="text-lg font-bold text-brand-text">Tipos de Permisos</h3>
                             <button className="text-brand-primary text-xs font-bold hover:underline">Ver Todos</button>
@@ -357,14 +317,14 @@ export const Dashboard: React.FC = () => {
                             Distribución de reportes diarios
                         </p>
 
-                        <div className="flex-1 flex flex-col justify-center min-h-[220px] relative">
+                        <div className="flex-1 flex flex-col justify-center min-h-[180px] relative">
                             {pieData.length > 0 ? (
-                                <ResponsiveContainer width="100%" height={240}>
+                                <ResponsiveContainer width="100%" height={200}>
                                     <PieChart>
                                         <Pie
                                             data={pieData}
-                                            innerRadius={60}
-                                            outerRadius={80}
+                                            innerRadius={50}
+                                            outerRadius={65}
                                             paddingAngle={3}
                                             dataKey="value"
                                             stroke="none"
@@ -376,42 +336,81 @@ export const Dashboard: React.FC = () => {
                                         <Tooltip content={renderTooltip} />
                                         <Legend
                                             verticalAlign="bottom"
-                                            height={36}
+                                            height={30}
                                             iconType="circle"
-                                            wrapperStyle={{ fontSize: '11px', fontWeight: 'bold' }}
+                                            wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }}
                                         />
                                     </PieChart>
                                 </ResponsiveContainer>
                             ) : (
                                 <div className="flex items-center justify-center flex-1 text-xs text-gray-400 font-semibold border-2 border-dashed border-gray-100 rounded-2xl p-6 text-center">
-                                    No hay permisos registrados para mostrar distribución.
+                                    No hay registros.
                                 </div>
                             )}
                         </div>
 
-                        {/* Listado rápido opcional abajo de la torta */}
-                        <div className="space-y-3 pt-4 border-t border-gray-50 mt-4">
+                        <div className="space-y-2 pt-4 border-t border-gray-50 mt-4">
                             {pieData.slice(0, 3).map((item, i) => (
                                 <div key={i} className="flex items-center justify-between group">
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-2">
                                         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: getPermitColor(item.name) }} />
-                                        <span className="text-xs font-bold text-brand-text truncate max-w-[140px]">{item.name}</span>
+                                        <span className="text-[10px] font-bold text-brand-text truncate max-w-[120px]">{item.name}</span>
                                     </div>
                                     <div className="text-right">
-                                        <span className="text-xs font-bold text-brand-text block">{item.porcentaje}%</span>
+                                        <span className="text-[10px] font-bold text-brand-text block">{item.porcentaje}%</span>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     </div>
+                </div>
 
-                    {/* Nueva Pirámide HSE */}
-                    <HSEPyramid 
-                        mti={hseStats.mti} 
-                        fai={hseStats.fai} 
-                        nearMiss={hseStats.nearMiss} 
-                        aci={hseStats.aci} 
-                    />
+                {/* Gráfico principal / Histórico General (Bottom) */}
+                <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+                    <div className="flex items-center justify-between mb-2">
+                        <div>
+                            <h3 className="text-xl font-bold text-brand-text">Operaciones Totales</h3>
+                            <p className="text-brand-text-muted text-[11px] mt-1">Validaciones de permisos por mes por Personal HSE</p>
+                        </div>
+                        <div className="flex items-center gap-6">
+                            <select className="bg-gray-50 border-none rounded-lg py-2 px-4 text-xs font-bold text-brand-text focus:ring-2 focus:ring-brand-primary/20 outline-none cursor-pointer">
+                                <option>Este Año</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 mt-4 h-56 min-h-[224px]">
+                        {permisosData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={barData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af', fontWeight: 'bold' }} dy={10} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af', fontWeight: 'bold' }} />
+                                    <Tooltip content={renderBarTooltip} cursor={{ fill: '#f9fafb' }} />
+                                    <Legend
+                                        verticalAlign="top"
+                                        align="right"
+                                        iconType="circle"
+                                        wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', paddingBottom: '10px' }}
+                                    />
+                                    {supervisores.map((sup, idx) => (
+                                        <Bar
+                                            key={sup}
+                                            dataKey={sup}
+                                            stackId="a"
+                                            fill={COLORS[idx % COLORS.length]}
+                                            radius={idx === supervisores.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+                                            maxBarSize={30}
+                                        />
+                                    ))}
+                                </BarChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="flex h-full items-center justify-center text-xs text-gray-400 font-semibold border-2 border-dashed border-gray-100 rounded-2xl w-full">
+                                No hay registros disponibles.
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

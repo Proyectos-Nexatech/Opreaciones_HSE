@@ -9,13 +9,13 @@ interface HSEPyramidProps {
 
 export const HSEPyramid: React.FC<HSEPyramidProps> = ({ mti, fai, nearMiss, aci }) => {
     return (
-        <div className="bg-white p-6 md:p-8 rounded-[32px] border border-gray-100 shadow-sm flex flex-col items-center h-full group hover:border-brand-primary/20 transition-all hover:shadow-xl">
-            <h3 className="text-xl font-bold text-[#126bf0] mb-2 font-outfit self-start ml-2">Indicadores HSE</h3>
-            <p className="text-[10px] text-brand-text-muted uppercase tracking-widest font-bold mb-8 self-start ml-2 border-l-2 border-brand-primary/20 pl-2">
-                Pirámide de Seguridad Operacional
+        <div className="bg-white p-5 md:p-6 rounded-[32px] border border-gray-100 shadow-sm flex flex-col items-center h-full group hover:border-brand-primary/20 transition-all hover:shadow-xl">
+            <h3 className="text-xl font-bold text-[#126bf0] mb-1 font-outfit self-start ml-2">Indicadores HSE</h3>
+            <p className="text-[10px] text-brand-text-muted uppercase tracking-widest font-bold mb-4 self-start ml-2 border-l-2 border-brand-primary/20 pl-2">
+                Pirámide de Seguridad
             </p>
             
-            <div className="relative w-full max-w-[280px] aspect-[1/1.1] flex flex-col mt-4">
+            <div className="relative w-full max-w-[240px] aspect-[1/1] flex flex-col mt-2">
                 {/* MTI Level */}
                 <div 
                     className="relative flex flex-col items-center justify-end pb-3 transition-all hover:brightness-110 hover:scale-[1.02] cursor-default shadow-md"
