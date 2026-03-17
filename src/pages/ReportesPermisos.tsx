@@ -195,14 +195,14 @@ export const ReportesPermisos: React.FC = () => {
         const headers = [
             'fecha',
             'jornada',
-            'supervisor_id',
-            'empresa_id',
-            'centro_costo_id',
+            'id_supervisor',
+            'id_empresa',
+            'id_centro_costo',
             'orden_servicio',
-            'tipo',
+            'tipo_permiso',
             'numero_formato',
             'hora_firma',
-            'propietario_email'
+            'email_propietario'
         ];
         
         // Example row
@@ -219,7 +219,8 @@ export const ReportesPermisos: React.FC = () => {
             userEmail
         ];
 
-        const csvContent = [headers.join(','), example.join(',')].join('\n');
+        // Using sep=; and semicolon separator for Latin American Excel compatibility
+        const csvContent = 'sep=;\n' + [headers.join(';'), example.join(';')].join('\n');
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -246,16 +247,35 @@ export const ReportesPermisos: React.FC = () => {
 
             try {
                 setSaving(true);
-                const lines = text.split('\n');
-                const headers = lines[0].split(',').map(h => h.trim());
+                // Filter out 'sep=;' if present and split by lines
+                const lines = text.split('\n').filter(line => !line.startsWith('sep='));
                 
+                // Detect separator: check if first line contains semicolon
+                const separator = lines[0].includes(';') ? ';' : ',';
+                const headers = lines[0].split(separator).map(h => h.trim());
+                
+                // Map Spanish headers back to DB fields
+                const headerMap: { [key: string]: string } = {
+                    'fecha': 'fecha',
+                    'jornada': 'jornada',
+                    'id_supervisor': 'supervisor_id',
+                    'id_empresa': 'empresa_id',
+                    'id_centro_costo': 'centro_costo_id',
+                    'orden_servicio': 'orden_servicio',
+                    'tipo_permiso': 'tipo',
+                    'numero_formato': 'numero_formato',
+                    'hora_firma': 'hora_firma',
+                    'email_propietario': 'propietario_email'
+                };
+
                 const dataToInsert = lines.slice(1)
                     .filter(line => line.trim() !== '')
                     .map(line => {
-                        const values = line.split(',').map(v => v.trim());
+                        const values = line.split(separator).map(v => v.trim());
                         const obj: any = {};
                         headers.forEach((header, index) => {
-                            obj[header] = values[index] || null;
+                            const dbField = headerMap[header.toLowerCase()] || header;
+                            obj[dbField] = values[index] || null;
                         });
                         return obj;
                     });
