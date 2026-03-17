@@ -284,13 +284,21 @@ export const ReportesPermisos: React.FC = () => {
 
             try {
                 setSaving(true);
-                // Filter out 'sep=;' if present and split by lines
-                const lines = text.split('\n').filter(line => !line.startsWith('sep='));
+                // Handle different line endings and filter out empty lines or 'sep='
+                const lines = text.split(/\r?\n/).filter(line => line.trim() !== '' && !line.startsWith('sep='));
                 
+                if (lines.length < 2) {
+                    alert('El archivo está vacío o solo contiene encabezados.');
+                    return;
+                }
+
                 // Detect separator: check if first line contains semicolon
                 const separator = lines[0].includes(';') ? ';' : ',';
-                const headers = lines[0].split(separator).map(h => h.trim()).filter(h => h !== '');
+                // Filter out empty headers and remove BOM if present
+                const headers = lines[0].split(separator).map(h => h.trim().replace(/^\uFEFF/, '')).filter(h => h !== '');
                 
+                console.log('Detected headers:', headers);
+
                 // Map Spanish headers back to DB fields
                 const headerMap: { [key: string]: string } = {
                     'fecha': 'fecha',
@@ -305,30 +313,33 @@ export const ReportesPermisos: React.FC = () => {
                     'email_propietario': 'propietario_email'
                 };
 
-                const dataToInsert = lines.slice(1)
-                    .filter(line => line.trim() !== '')
-                    .map(line => {
-                        const values = line.split(separator).map(v => v.trim());
-                        const obj: any = {};
-                        headers.forEach((header, index) => {
-                            const dbField = headerMap[header.toLowerCase()];
-                            if (!dbField) return; // Skip unknown columns like 'Area'
-                            
-                            let val = values[index] || null;
-                            
-                            // Transform Excel values if necessary
-                            if (val) {
-                                if (dbField === 'fecha') val = excelDateToISO(val);
-                                if (dbField === 'hora_firma') val = excelTimeToHHMM(val);
-                            }
-                            
-                            obj[dbField] = val;
-                        });
-                        return obj;
+                const dataToInsert = lines.slice(1).map((line, lineIdx) => {
+                    const values = line.split(separator).map(v => v.trim());
+                    const obj: any = {};
+                    headers.forEach((header, index) => {
+                        const dbField = headerMap[header.toLowerCase()];
+                        if (!dbField) return; // Skip unknown columns
+                        
+                        let val = values[index];
+                        if (val === undefined || val === '') {
+                            val = null;
+                        }
+                        
+                        // Transform Excel values if necessary
+                        if (val) {
+                            if (dbField === 'fecha') val = excelDateToISO(val);
+                            if (dbField === 'hora_firma') val = excelTimeToHHMM(val);
+                        }
+                        
+                        obj[dbField] = val;
                     });
+                    return obj;
+                }).filter(obj => Object.keys(obj).length > 0);
+
+                console.log('Data to insert (first row):', dataToInsert[0]);
 
                 if (dataToInsert.length === 0) {
-                    alert('El archivo está vacío o no tiene el formato correcto.');
+                    alert('No se encontraron datos para importar. Verifique que los nombres de las columnas coincidan con la plantilla.');
                     return;
                 }
 
@@ -338,7 +349,9 @@ export const ReportesPermisos: React.FC = () => {
                 loadData();
             } catch (err: any) {
                 console.error('Error in bulk upload:', err);
-                alert(`Error en la carga: ${err.message || 'Verifique el formato del archivo'}`);
+                // More detailed error message
+                const errorDetail = err.message || (err.error?.message) || 'Error desconocido';
+                alert(`Error en la carga: ${errorDetail}`);
             } finally {
                 setSaving(false);
             }
