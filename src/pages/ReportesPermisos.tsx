@@ -241,6 +241,21 @@ export const ReportesPermisos: React.FC = () => {
         }
 
         const excelDateToISO = (serial: string) => {
+            if (!serial) return null;
+            
+            // Handle DD/MM/YYYY format
+            if (serial.includes('/')) {
+                const parts = serial.split('/');
+                if (parts.length === 3) {
+                    const day = parts[0].padStart(2, '0');
+                    const month = parts[1].padStart(2, '0');
+                    const year = parts[2];
+                    // If year is 2 digits, assume 20xx
+                    const fullYear = year.length === 2 ? `20${year}` : year;
+                    return `${fullYear}-${month}-${day}`;
+                }
+            }
+
             const normalized = serial.replace(',', '.');
             const num = Number(normalized);
             if (!isNaN(num) && num > 40000) {
