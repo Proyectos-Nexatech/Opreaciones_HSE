@@ -266,6 +266,28 @@ export const ReportesPermisos: React.FC = () => {
         };
 
         const excelTimeToHHMM = (serial: string) => {
+            if (!serial) return null;
+            
+            // 1. Handle string formats like "2:15:00 p. m.", "02:15 PM", etc.
+            const lower = serial.toLowerCase().trim();
+            if (lower.includes('a') || lower.includes('p')) {
+                const isPM = lower.includes('p');
+                const isAM = lower.includes('a');
+                
+                // Extract numbers using regex (looks for HH:MM:SS or HH:MM)
+                const timeMatch = lower.match(/(\d{1,2}):(\d{1,2})/);
+                if (timeMatch) {
+                    let hours = parseInt(timeMatch[1]);
+                    const minutes = timeMatch[2].padStart(2, '0');
+                    
+                    if (isPM && hours < 12) hours += 12;
+                    if (isAM && hours === 12) hours = 0;
+                    
+                    return `${hours.toString().padStart(2, '0')}:${minutes}`;
+                }
+            }
+
+            // 2. Handle Excel serial numbers (fractions of a day)
             const normalized = serial.replace(',', '.');
             const num = Number(normalized);
             if (!isNaN(num) && num < 1 && num > 0) {
@@ -313,14 +335,14 @@ export const ReportesPermisos: React.FC = () => {
                     'email_propietario': 'propietario_email'
                 };
 
-                const dataToInsert = lines.slice(1).map((line, lineIdx) => {
+                const dataToInsert = lines.slice(1).map((line) => {
                     const values = line.split(separator).map(v => v.trim());
                     const obj: any = {};
                     headers.forEach((header, index) => {
                         const dbField = headerMap[header.toLowerCase()];
                         if (!dbField) return; // Skip unknown columns
                         
-                        let val = values[index];
+                        let val: any = values[index];
                         if (val === undefined || val === '') {
                             val = null;
                         }
@@ -329,6 +351,23 @@ export const ReportesPermisos: React.FC = () => {
                         if (val) {
                             if (dbField === 'fecha') val = excelDateToISO(val);
                             if (dbField === 'hora_firma') val = excelTimeToHHMM(val);
+
+                            // Perform name-to-ID mappings for linked tables
+                            if (dbField === 'supervisor_id') {
+                                const matched = supervisors.find(s => s.name.toLowerCase() === val.toLowerCase());
+                                val = matched ? matched.id : null; 
+                            }
+                            if (dbField === 'empresa_id') {
+                                const matched = empresas.find(e => e.name.toLowerCase() === val.toLowerCase());
+                                val = matched ? matched.id : null;
+                            }
+                            if (dbField === 'centro_costo_id') {
+                                const matched = centrosCosto.find(c => 
+                                    c.name.toLowerCase() === val.toLowerCase() || 
+                                    (c.code && c.code.toLowerCase() === val.toLowerCase())
+                                );
+                                val = matched ? matched.id : null;
+                            }
                         }
                         
                         obj[dbField] = val;
@@ -336,7 +375,7 @@ export const ReportesPermisos: React.FC = () => {
                     return obj;
                 }).filter(obj => Object.keys(obj).length > 0);
 
-                console.log('Data to insert (first row):', dataToInsert[0]);
+                console.log('Final data to insert (first row):', dataToInsert[0]);
 
                 if (dataToInsert.length === 0) {
                     alert('No se encontraron datos para importar. Verifique que los nombres de las columnas coincidan con la plantilla.');
@@ -344,12 +383,11 @@ export const ReportesPermisos: React.FC = () => {
                 }
 
                 await createPermisosBulk(dataToInsert);
-                alert(`${dataToInsert.length} registros cargados exitosamente.`);
+                alert(`${dataToInsert.length} registros procesados. Se ha intentado cargar la información a la base de datos.`);
                 setIsUploadModalOpen(false);
                 loadData();
             } catch (err: any) {
                 console.error('Error in bulk upload:', err);
-                // More detailed error message
                 const errorDetail = err.message || (err.error?.message) || 'Error desconocido';
                 alert(`Error en la carga: ${errorDetail}`);
             } finally {
