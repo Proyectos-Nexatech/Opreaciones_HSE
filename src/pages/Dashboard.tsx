@@ -10,8 +10,9 @@ import {
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { getPermisos, getAusentismo, getPersonal } from '../services/hseService';
+import { getPermisos, getAusentismo, getPersonal, getEventos } from '../services/hseService';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { HSEPyramid } from '../components/HSEPyramid';
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -58,6 +59,7 @@ const COLORS = ['#126bf0', '#0ea5e9', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'
 export const Dashboard: React.FC = () => {
     const [permisosData, setPermisosData] = useState<any[]>([]);
     const [stats, setStats] = useState({ total: 0 });
+    const [eventosData, setEventosData] = useState<any[]>([]);
 
     const [ausentismoRate, setAusentismoRate] = useState<string>('0%');
 
@@ -96,6 +98,10 @@ export const Dashboard: React.FC = () => {
                 } else {
                     setAusentismoRate('N/A');
                 }
+
+                // Cargar datos de HSE para la pirámide
+                const eventos = await getEventos();
+                setEventosData(eventos || []);
             } catch (error) {
                 console.error("Error al cargar data del dashboard:", error);
             }
@@ -113,6 +119,20 @@ export const Dashboard: React.FC = () => {
         const matchesSupervisor = selectedSupervisor === 'All' || (p.supervisor?.name || 'Sin Asignar') === selectedSupervisor;
         return matchesEmpresa && matchesCentro && matchesSupervisor;
     });
+
+    const filteredEventosData = eventosData.filter(e => {
+        const matchesEmpresa = selectedEmpresa === 'All' || (e.empresa?.name || 'Sin Asignar') === selectedEmpresa;
+        const matchesCentro = selectedCentro === 'All' || (e.centro?.name || 'Sin Asignar') === selectedCentro;
+        const matchesSupervisor = selectedSupervisor === 'All' || (e.supervisor?.name || 'Sin Asignar') === selectedSupervisor;
+        return matchesEmpresa && matchesCentro && matchesSupervisor;
+    });
+
+    const hseStats = {
+        mti: filteredEventosData.reduce((sum: number, e: any) => sum + (Number(e.num_tratamientos) || 0), 0),
+        fai: filteredEventosData.reduce((sum: number, e: any) => sum + (Number(e.num_auxilios) || 0), 0),
+        nearMiss: filteredEventosData.reduce((sum: number, e: any) => sum + (Number(e.num_incidentes) || 0), 0),
+        aci: filteredEventosData.filter((e: any) => e.acto_condicion && e.acto_condicion.trim() !== '').length
+    };
 
     const getChartData = () => {
         if (!filteredPermisosData.length) return [];
@@ -274,7 +294,7 @@ export const Dashboard: React.FC = () => {
                 <StatCard title="Permisos Activos" value={stats.total.toString()} trend="+12%" trendType="positive" icon={ShieldCheck} />
                 <StatCard title="Indicador Ausentismo" value={ausentismoRate} trend="Actual" trendType="meta" icon={Users} />
                 <StatCard title="Puntaje de Seguridad" value="98.5%" trend="+2%" trendType="meta" icon={Users} />
-                <StatCard title="Incidentes (Mes)" value="12" trend="-15%" trendType="positive" icon={AlertCircle} />
+                <StatCard title="Incidentes (Mes)" value={(hseStats.nearMiss + hseStats.fai + hseStats.mti).toString()} trend="-15%" trendType="positive" icon={AlertCircle} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -384,6 +404,14 @@ export const Dashboard: React.FC = () => {
                             ))}
                         </div>
                     </div>
+
+                    {/* Nueva Pirámide HSE */}
+                    <HSEPyramid 
+                        mti={hseStats.mti} 
+                        fai={hseStats.fai} 
+                        nearMiss={hseStats.nearMiss} 
+                        aci={hseStats.aci} 
+                    />
                 </div>
             </div>
         </div>
