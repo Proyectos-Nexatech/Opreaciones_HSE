@@ -311,7 +311,9 @@ export const ReportesPermisos: React.FC = () => {
                         const values = line.split(separator).map(v => v.trim());
                         const obj: any = {};
                         headers.forEach((header, index) => {
-                            const dbField = headerMap[header.toLowerCase()] || header;
+                            const dbField = headerMap[header.toLowerCase()];
+                            if (!dbField) return; // Skip unknown columns like 'Area'
+                            
                             let val = values[index] || null;
                             
                             // Transform Excel values if necessary
