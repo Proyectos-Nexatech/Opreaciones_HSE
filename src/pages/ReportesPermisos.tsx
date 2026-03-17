@@ -240,6 +240,28 @@ export const ReportesPermisos: React.FC = () => {
             return;
         }
 
+        const excelDateToISO = (serial: string) => {
+            const normalized = serial.replace(',', '.');
+            const num = Number(normalized);
+            if (!isNaN(num) && num > 40000) {
+                const date = new Date(Math.round((num - 25569) * 86400 * 1000));
+                return date.toISOString().split('T')[0];
+            }
+            return serial;
+        };
+
+        const excelTimeToHHMM = (serial: string) => {
+            const normalized = serial.replace(',', '.');
+            const num = Number(normalized);
+            if (!isNaN(num) && num < 1 && num > 0) {
+                const totalMinutes = Math.round(num * 24 * 60);
+                const hours = Math.floor(totalMinutes / 60);
+                const minutes = totalMinutes % 60;
+                return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            }
+            return serial;
+        };
+
         const reader = new FileReader();
         reader.onload = async (event) => {
             const text = event.target?.result as string;
@@ -275,7 +297,15 @@ export const ReportesPermisos: React.FC = () => {
                         const obj: any = {};
                         headers.forEach((header, index) => {
                             const dbField = headerMap[header.toLowerCase()] || header;
-                            obj[dbField] = values[index] || null;
+                            let val = values[index] || null;
+                            
+                            // Transform Excel values if necessary
+                            if (val) {
+                                if (dbField === 'fecha') val = excelDateToISO(val);
+                                if (dbField === 'hora_firma') val = excelTimeToHHMM(val);
+                            }
+                            
+                            obj[dbField] = val;
                         });
                         return obj;
                     });
