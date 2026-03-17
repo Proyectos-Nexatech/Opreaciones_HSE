@@ -18,7 +18,7 @@ export const HSEPyramid: React.FC<HSEPyramidProps> = ({ mti, fai, nearMiss, aci 
             <div className="relative w-full max-w-[240px] aspect-[1/1] flex flex-col mt-2">
                 {/* MTI Level */}
                 <div 
-                    className="relative flex flex-col items-center justify-end pb-3 transition-all hover:brightness-110 hover:scale-[1.02] cursor-default shadow-md"
+                    className="relative flex flex-col items-center justify-center transition-all hover:brightness-110 hover:scale-[1.02] cursor-default shadow-md"
                     style={{ 
                         backgroundColor: '#ef4444', 
                         clipPath: 'polygon(50% 0%, 37.5% 100%, 62.5% 100%)',
@@ -27,8 +27,8 @@ export const HSEPyramid: React.FC<HSEPyramidProps> = ({ mti, fai, nearMiss, aci 
                         boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
                     }}
                 >
-                    <span className="text-[9px] font-black text-white/70 uppercase tracking-tighter">MTI</span>
                     <span className="text-2xl font-black text-white leading-none">{mti}</span>
+                    <span className="text-[9px] font-black text-white/90 uppercase tracking-tighter">MTI</span>
                 </div>
 
                 {/* FAI Level */}
@@ -42,8 +42,8 @@ export const HSEPyramid: React.FC<HSEPyramidProps> = ({ mti, fai, nearMiss, aci 
                         zIndex: 3
                     }}
                 >
-                    <span className="text-[10px] font-black text-white/80 uppercase tracking-tighter">FAI</span>
-                    <span className="text-2xl font-black text-white">{fai}</span>
+                    <span className="text-2xl font-black text-white leading-none">{fai}</span>
+                    <span className="text-[10px] font-black text-white/90 uppercase tracking-tighter">FAI</span>
                 </div>
 
                 {/* NEAR MISS Level */}
@@ -57,8 +57,8 @@ export const HSEPyramid: React.FC<HSEPyramidProps> = ({ mti, fai, nearMiss, aci 
                         zIndex: 2
                     }}
                 >
-                    <span className="text-[10px] font-black text-brand-text-muted uppercase tracking-tighter">NEAR MISS</span>
                     <span className="text-2xl font-black text-brand-text leading-none">{nearMiss}</span>
+                    <span className="text-[10px] font-black text-brand-text-muted/80 uppercase tracking-tighter">NEAR MISS</span>
                 </div>
 
                 {/* ACI Level */}
@@ -72,8 +72,8 @@ export const HSEPyramid: React.FC<HSEPyramidProps> = ({ mti, fai, nearMiss, aci 
                         zIndex: 1
                     }}
                 >
-                    <span className="text-[10px] font-black text-brand-text-muted uppercase tracking-tighter">ACI</span>
                     <span className="text-2xl font-black text-brand-text leading-none">{aci}</span>
+                    <span className="text-[10px] font-black text-brand-text-muted/80 uppercase tracking-tighter">ACI</span>
                 </div>
             </div>
 
