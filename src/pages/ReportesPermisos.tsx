@@ -16,11 +16,13 @@ import {
     Hash,
     Clock,
     ShieldCheck,
-    Loader2
+    Loader2,
+    Download,
+    FileSpreadsheet
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { getPermisos, getSupervisores, getEmpresas, getCentrosCosto, getPersonal, createPermiso, updatePermiso, deletePermiso } from '../services/hseService';
+import { getPermisos, getSupervisores, getEmpresas, getCentrosCosto, getPersonal, createPermiso, updatePermiso, deletePermiso, createPermisosBulk } from '../services/hseService';
 import { supabase } from '../lib/supabaseClient';
 
 function cn(...inputs: ClassValue[]) {
@@ -29,6 +31,7 @@ function cn(...inputs: ClassValue[]) {
 
 export const ReportesPermisos: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [selectedSupervisor, setSelectedSupervisor] = useState<string | null>(null);
     const [userEmail, setUserEmail] = useState('');
     const [jornada, setJornada] = useState<'Dia' | 'Noche'>('Dia');
@@ -186,6 +189,96 @@ export const ReportesPermisos: React.FC = () => {
         }
     };
 
+    const downloadTemplate = () => {
+        if (!window.confirm('¿Desea descargar la plantilla CSV para carga masiva?')) return;
+
+        const headers = [
+            'fecha',
+            'jornada',
+            'supervisor_id',
+            'empresa_id',
+            'centro_costo_id',
+            'orden_servicio',
+            'tipo',
+            'numero_formato',
+            'hora_firma',
+            'propietario_email'
+        ];
+        
+        // Example row
+        const example = [
+            '2024-03-17',
+            'Dia',
+            'ID_SUPERVISOR',
+            'ID_EMPRESA',
+            'ID_CENTRO',
+            'OS-001',
+            'Permisos Generales',
+            '12345',
+            '08:00',
+            userEmail
+        ];
+
+        const csvContent = [headers.join(','), example.join(',')].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'plantilla_permisos_hse.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const handleCsvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!window.confirm(`¿Desea subir el archivo "${file.name}"? Los datos se procesarán inmediatamente.`)) {
+            e.target.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            const text = event.target?.result as string;
+            if (!text) return;
+
+            try {
+                setSaving(true);
+                const lines = text.split('\n');
+                const headers = lines[0].split(',').map(h => h.trim());
+                
+                const dataToInsert = lines.slice(1)
+                    .filter(line => line.trim() !== '')
+                    .map(line => {
+                        const values = line.split(',').map(v => v.trim());
+                        const obj: any = {};
+                        headers.forEach((header, index) => {
+                            obj[header] = values[index] || null;
+                        });
+                        return obj;
+                    });
+
+                if (dataToInsert.length === 0) {
+                    alert('El archivo está vacío o no tiene el formato correcto.');
+                    return;
+                }
+
+                await createPermisosBulk(dataToInsert);
+                alert(`${dataToInsert.length} registros cargados exitosamente.`);
+                setIsUploadModalOpen(false);
+                loadData();
+            } catch (err: any) {
+                console.error('Error in bulk upload:', err);
+                alert(`Error en la carga: ${err.message || 'Verifique el formato del archivo'}`);
+            } finally {
+                setSaving(false);
+            }
+        };
+        reader.readAsText(file);
+    };
+
     return (
         <div className="w-full h-full animate-in fade-in duration-700 pb-10 px-8">
             {/* Header section with title and actions */}
@@ -203,6 +296,13 @@ export const ReportesPermisos: React.FC = () => {
                             className="bg-white border border-gray-200 rounded-xl py-2.5 pl-11 pr-6 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/50 transition-all w-64 shadow-sm"
                         />
                     </div>
+                    <button
+                        onClick={() => setIsUploadModalOpen(true)}
+                        className="flex items-center gap-2 px-6 py-2.5 rounded-xl border border-gray-200 bg-white text-brand-text font-semibold hover:bg-gray-50 transition-all shadow-sm"
+                    >
+                        <Upload className="w-4 h-4" />
+                        <span className="text-sm">Subir CSV</span>
+                    </button>
                     <button
                         onClick={() => setIsModalOpen(true)}
                         className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-primary text-white font-semibold hover:brightness-110 shadow-lg shadow-brand-primary/10 transition-all active:scale-95"
@@ -724,6 +824,95 @@ export const ReportesPermisos: React.FC = () => {
                         </form>
                     </div >
                 </div >
+            )}
+
+            {/* Upload CSV Modal */}
+            {isUploadModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-brand-text/20 backdrop-blur-md" onClick={() => setIsUploadModalOpen(false)} />
+                    <div className="relative bg-white w-full max-w-xl rounded-[40px] shadow-2xl border border-white/20 flex flex-col animate-in zoom-in duration-300 overflow-hidden">
+                        <div className="bg-brand-primary p-8 text-white flex justify-between items-center shrink-0">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-white/20 rounded-2xl backdrop-blur-md flex items-center justify-center border border-white/10">
+                                    <FileSpreadsheet className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-black tracking-tight">Carga Masiva (CSV)</h2>
+                                    <p className="text-white/70 text-[10px] font-bold uppercase tracking-[0.2em]">Importación de Reportes</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setIsUploadModalOpen(false)} className="p-2 hover:bg-white/20 rounded-xl transition-all">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="p-10 space-y-8">
+                            <div className="bg-blue-50/50 p-6 rounded-3xl border border-blue-100 flex items-start gap-4">
+                                <div className="p-2 bg-blue-100 rounded-xl text-blue-600">
+                                    <ShieldCheck className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-bold text-blue-900 mb-1">Instrucciones de Carga</p>
+                                    <p className="text-xs text-blue-700 leading-relaxed font-medium">
+                                        Para cargar registros masivamente, debe usar nuestra plantilla oficial. Asegúrese de que las fechas tengan formato YYYY-MM-DD y que no falten campos obligatorios.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={downloadTemplate}
+                                className="w-full flex items-center justify-between p-5 rounded-2xl border-2 border-dashed border-gray-200 hover:border-brand-primary/30 hover:bg-gray-50 transition-all group text-left"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-gray-500 group-hover:bg-brand-primary/10 group-hover:text-brand-primary transition-all">
+                                        <Download className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-brand-text">Descargar Plantilla</p>
+                                        <p className="text-[10px] text-brand-text-muted font-bold uppercase tracking-wider">plantilla_permisos_hse.csv</p>
+                                    </div>
+                                </div>
+                                <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-brand-primary group-hover:translate-x-1 transition-all" />
+                            </button>
+
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-bold text-brand-text-muted uppercase tracking-widest ml-1">Seleccionar Archivo Editable</label>
+                                <label className="w-full flex flex-col items-center justify-center py-10 border-2 border-dashed border-gray-200 rounded-[32px] cursor-pointer hover:bg-gray-50 hover:border-brand-primary/30 transition-all group relative">
+                                    {saving ? (
+                                        <div className="flex flex-col items-center">
+                                            <Loader2 className="w-8 h-8 animate-spin text-brand-primary mb-3" />
+                                            <p className="text-xs font-black text-brand-primary uppercase tracking-widest">Procesando...</p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="w-12 h-12 bg-brand-primary/10 rounded-2xl flex items-center justify-center text-brand-primary mb-3 group-hover:scale-110 transition-transform">
+                                                <Upload className="w-6 h-6" />
+                                            </div>
+                                            <p className="text-sm font-bold text-brand-text">Haga clic o arrastre su CSV</p>
+                                            <p className="text-[10px] text-brand-text-muted mt-1 font-bold uppercase tracking-[0.1em]">Solo archivos .csv</p>
+                                        </>
+                                    )}
+                                    <input 
+                                        type="file" 
+                                        className="hidden" 
+                                        accept=".csv" 
+                                        onChange={handleCsvUpload}
+                                        disabled={saving}
+                                    />
+                                </label>
+                            </div>
+                        </div>
+
+                        <div className="px-10 py-6 bg-gray-50 border-t border-gray-100 flex justify-end">
+                            <button
+                                onClick={() => setIsUploadModalOpen(false)}
+                                className="px-8 py-3 rounded-xl font-bold text-brand-text-muted hover:bg-gray-100 transition-all"
+                            >
+                                Cerrar Ventana
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
 
             <style dangerouslySetInnerHTML={{

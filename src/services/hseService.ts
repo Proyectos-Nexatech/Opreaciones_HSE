@@ -187,6 +187,15 @@ export async function createPermiso(permiso: any) {
     return data;
 }
 
+export async function createPermisosBulk(permisos: any[]) {
+    const { data, error } = await supabase
+        .from('reporte_permisos')
+        .insert(permisos)
+        .select();
+    if (error) throw error;
+    return data;
+}
+
 export async function updatePermiso(id: string, updates: any) {
     const { data, error } = await supabase
         .from('reporte_permisos')
