@@ -289,7 +289,7 @@ export const ReportesPermisos: React.FC = () => {
                 
                 // Detect separator: check if first line contains semicolon
                 const separator = lines[0].includes(';') ? ';' : ',';
-                const headers = lines[0].split(separator).map(h => h.trim());
+                const headers = lines[0].split(separator).map(h => h.trim()).filter(h => h !== '');
                 
                 // Map Spanish headers back to DB fields
                 const headerMap: { [key: string]: string } = {
