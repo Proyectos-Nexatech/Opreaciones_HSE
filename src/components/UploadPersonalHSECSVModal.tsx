@@ -48,25 +48,33 @@ export const UploadPersonalHSECSVModal: React.FC<UploadPersonalHSECSVModalProps>
     };
 
     const parseCSV = (fileContent: string) => {
+        // Handle line endings and remove empty lines
         const lines = fileContent.split(/\r?\n/).filter(line => line.trim() !== '');
         if (lines.length < 2) {
             throw new Error("El archivo está vacío o solo contiene los encabezados.");
         }
 
-        const headers = lines[0].split(';').map(h => h.trim().toLowerCase());
+        // Detect separator: semicolon is standard for Excel in LatAm
+        const separator = lines[0].includes(';') ? ';' : ',';
+        
+        // Remove BOM and trim headers
+        const headers = lines[0].split(separator).map(h => h.trim().replace(/^\uFEFF/, '').toLowerCase()).filter(h => h !== '');
+        
         const requiredHeaders = ['nombre', 'cargo', 'area', 'estado', 'correo', 'telefono'];
 
         const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
         if (missingHeaders.length > 0) {
-            throw new Error(`Faltan columnas requeridas en el CSV (separadas por punto y coma): ${missingHeaders.join(', ')}`);
+            throw new Error(`Faltan columnas requeridas en el CSV: ${missingHeaders.join(', ')}`);
         }
 
         const data = [];
         for (let i = 1; i < lines.length; i++) {
-            const values = lines[i].split(';').map(v => v.trim());
+            const values = lines[i].split(separator).map(v => v.trim());
             const row: any = {};
             headers.forEach((header, index) => {
-                row[header] = values[index];
+                if (header) {
+                    row[header] = values[index] || null;
+                }
             });
             data.push(row);
         }
