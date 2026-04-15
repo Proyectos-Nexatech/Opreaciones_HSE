@@ -309,58 +309,32 @@ export const Dashboard: React.FC = () => {
             </div>
 
             <div className="space-y-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-                    {/* Indicadores HSE piramide (Top Left) */}
-                    <HSEPyramid 
-                        mti={hseStats.mti} 
-                        fai={hseStats.fai} 
-                        nearMiss={hseStats.nearMiss} 
-                        aci={hseStats.aci} 
-                    />
-
-                    {/* Tipos de Permisos (Top Right) */}
-                    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col">
-                        <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-lg font-bold text-brand-text">Tipos de Permisos</h3>
-                            <button className="text-brand-primary text-xs font-bold hover:underline">Ver Todos</button>
-                        </div>
-                        <p className="text-[10px] text-brand-text-muted uppercase tracking-wider font-bold mb-6">
-                            Distribución de reportes diarios
-                        </p>
-
-                        <div className="flex-1 flex flex-col justify-center min-h-[180px] relative">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-1">
+                        <HSEPyramid 
+                            mti={hseStats.mti} 
+                            fai={hseStats.fai} 
+                            nearMiss={hseStats.nearMiss} 
+                            aci={hseStats.aci} 
+                        />
+                    </div>
+                    
+                    <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm flex flex-col">
+                        <h3 className="text-lg font-black text-brand-text mb-1 italic">Permisos de Trabajo</h3>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-8">Distribución por Peligrosidad</p>
+                        
+                        <div className="flex-1 min-h-[250px]">
                             {pieData.length > 0 ? (
-                                <ResponsiveContainer width="100%" height={200}>
+                                <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
-                                        <Pie
-                                            data={pieData}
-                                            innerRadius={50}
-                                            outerRadius={65}
-                                            paddingAngle={3}
-                                            dataKey="value"
-                                            stroke="none"
-                                        >
-                                            {pieData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={getPermitColor(entry.name)} />
-                                            ))}
+                                        <Pie data={pieData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value" stroke="none">
+                                            {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={getPermitColor(entry.name)} />)}
                                         </Pie>
-                                        <Tooltip content={renderTooltip} />
-                                        <Legend
-                                            verticalAlign="bottom"
-                                            height={30}
-                                            iconType="circle"
-                                            wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }}
-                                        />
+                                        <Tooltip />
+                                        <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 700 }} />
                                     </PieChart>
                                 </ResponsiveContainer>
                             ) : (
-                                <div className="flex items-center justify-center flex-1 text-xs text-gray-400 font-semibold border-2 border-dashed border-gray-100 rounded-2xl p-6 text-center">
-                                    No hay registros.
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="space-y-2 pt-4 border-t border-gray-50 mt-4">
                             {pieData.slice(0, 3).map((item, i) => (
                                 <div key={i} className="flex items-center justify-between group">
                                     <div className="flex items-center gap-2">
