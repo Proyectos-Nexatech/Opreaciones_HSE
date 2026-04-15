@@ -7,9 +7,10 @@ import {
     Map,
     Building2,
     ChevronDown,
-    Loader2
+    Loader2,
+    FileText
 } from 'lucide-react';
-import { getPermisos, getAusentismo, getPersonal, getEventos, getCentrosCostoByEmpresa, getProfileByToken } from '../services/hseService';
+import { getPermisos, getAusentismo, getPersonal, getEventos, getCentrosCostoByEmpresa, getProfileByToken, getNovedades } from '../services/hseService';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { HSEPyramid } from '../components/HSEPyramid';
 import { NexatechIcon } from '../components/NexatechIcon';
@@ -31,6 +32,7 @@ export const DashboardPublico: React.FC = () => {
     const [clientProfile, setClientProfile] = useState<any>(null);
     const [permisosData, setPermisosData] = useState<any[]>([]);
     const [eventosData, setEventosData] = useState<any[]>([]);
+    const [novedadesData, setNovedadesData] = useState<any[]>([]);
     const [ausentismoRate, setAusentismoRate] = useState<string>('0%');
     const [centrosCosto, setCentrosCosto] = useState<any[]>([]);
     const [selectedCentroId, setSelectedCentroId] = useState<string>('All');
@@ -61,17 +63,19 @@ export const DashboardPublico: React.FC = () => {
             const empresaId = profile.empresa_cliente_id;
             const profileCentroId = profile.centro_costo_id;
 
-            const [permisos, eventos, ausencias, personal, centros] = await Promise.all([
+            const [permisos, eventos, ausencias, personal, centros, novedades] = await Promise.all([
                 getPermisos({ empresaId, centroCostoId: profileCentroId || undefined }),
                 getEventos({ empresaId, centroCostoId: profileCentroId || undefined }),
                 getAusentismo(),
                 getPersonal(),
-                getCentrosCostoByEmpresa(empresaId)
+                getCentrosCostoByEmpresa(empresaId),
+                getNovedades({ empresaId, centroCostoId: profileCentroId || undefined })
             ]);
 
             setPermisosData(permisos || []);
             setEventosData(eventos || []);
             setCentrosCosto(centros || []);
+            setNovedadesData(novedades || []);
             
             // Si tiene un centro fijo, lo seleccionamos
             if (profileCentroId) {
@@ -103,6 +107,11 @@ export const DashboardPublico: React.FC = () => {
     const filteredEventos = eventosData.filter(e => {
         if (selectedCentroId === 'All') return true;
         return e.centro_costo_id === selectedCentroId || e.centro?.id === selectedCentroId;
+    });
+
+    const filteredNovedades = novedadesData.filter(n => {
+        if (selectedCentroId === 'All') return true;
+        return n.centro_costo_id === selectedCentroId || n.centro?.id === selectedCentroId;
     });
 
     const hseStats = {
@@ -216,16 +225,16 @@ export const DashboardPublico: React.FC = () => {
                     <div className="bg-brand-primary/5 p-4 rounded-2xl border border-brand-primary/10 flex items-center gap-3">
                         <Map className="w-4 h-4 text-brand-primary" />
                         <p className="text-xs font-bold text-brand-primary">
-                            Vista filtrada para: <span className="uppercase">{clientProfile.centro_costo?.name}</span>
+                            Vista filtrada por sede específica
                         </p>
                     </div>
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <QuickStat icon={ShieldCheck} label="Permisos" value={filteredPermisos.length.toString()} color="blue" />
-                    <QuickStat icon={Users} label="Ausentismo" value={ausentismoRate} color="green" />
-                    <QuickStat icon={Map} label="Centros" value={centrosCosto.length.toString()} color="amber" />
-                    <QuickStat icon={AlertCircle} label="Incidentes" value={(hseStats.nearMiss + hseStats.fai + hseStats.mti).toString()} color="red" />
+                    <StatCard icon={ShieldCheck} label="PERMISOS ACTIVOS" value={filteredPermisos.length.toString()} trend="+12%" color="blue" />
+                    <StatCard icon={Users} label="INDICADOR AUSENTISMO" value={ausentismoRate} trend="Actual" color="green" />
+                    <StatCard icon={FileText} label="NOVEDADES" value={filteredNovedades.length.toString()} trend="Reportadas" color="amber" />
+                    <StatCard icon={AlertCircle} label="INCIDENTES (MES)" value={(hseStats.nearMiss + hseStats.fai + hseStats.mti).toString()} trend="-15%" color="red" />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -286,20 +295,44 @@ export const DashboardPublico: React.FC = () => {
     );
 };
 
-const QuickStat: React.FC<{ icon: any, label: string, value: string, color: 'blue' | 'green' | 'amber' | 'red' }> = ({ icon: Icon, label, value, color }) => {
-    const colors = {
+// Componente de Tarjeta de Estadística Unificado
+const StatCard: React.FC<{
+    icon: React.ElementType;
+    label: string;
+    value: string;
+    trend?: string;
+    color: 'blue' | 'green' | 'amber' | 'red';
+}> = ({ icon: Icon, label, value, trend, color }) => {
+    const colorClasses = {
+        blue: "bg-blue-500/10 text-blue-600 border-blue-200/50",
+        green: "bg-emerald-500/10 text-emerald-600 border-emerald-200/50",
+        amber: "bg-amber-500/10 text-amber-600 border-amber-200/50",
+        red: "bg-rose-500/10 text-rose-600 border-rose-200/50"
+    };
+
+    const trendClasses = {
         blue: "bg-blue-50 text-blue-600 border-blue-100",
         green: "bg-emerald-50 text-emerald-600 border-emerald-100",
         amber: "bg-amber-50 text-amber-600 border-amber-100",
         red: "bg-rose-50 text-rose-600 border-rose-100"
     };
+
     return (
-        <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm flex flex-col items-center text-center group hover:border-brand-primary/20 transition-all">
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 border ${colors[color]} group-hover:scale-110 transition-transform`}>
-                <Icon className="w-6 h-6" />
+        <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+            <div className="flex justify-between items-start mb-6">
+                <div className={cn("p-3 rounded-2xl", colorClasses[color])}>
+                    <Icon className="w-5 h-5" />
+                </div>
             </div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
-            <p className="text-2xl font-black text-brand-text">{value}</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mb-1">{label}</p>
+            <div className="flex items-baseline gap-3">
+                <h3 className="text-3xl font-bold text-slate-800 tracking-tight">{value}</h3>
+                {trend && (
+                    <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-lg border", trendClasses[color])}>
+                        {trend}
+                    </span>
+                )}
+            </div>
         </div>
     );
 };

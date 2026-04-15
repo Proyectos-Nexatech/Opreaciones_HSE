@@ -10,7 +10,8 @@ import {
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { getPermisos, getAusentismo, getPersonal, getEventos } from '../services/hseService';
+import { getPermisos, getAusentismo, getPersonal, getEventos, getNovedades } from '../services/hseService';
+import { FileText } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { HSEPyramid } from '../components/HSEPyramid';
 
@@ -58,9 +59,9 @@ const COLORS = ['#126bf0', '#0ea5e9', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'
 
 export const Dashboard: React.FC = () => {
     const [permisosData, setPermisosData] = useState<any[]>([]);
-    const [stats, setStats] = useState({ total: 0 });
     const [eventosData, setEventosData] = useState<any[]>([]);
-
+    const [novedadesData, setNovedadesData] = useState<any[]>([]);
+    const [stats, setStats] = useState({ total: 0 });
     const [ausentismoRate, setAusentismoRate] = useState<string>('0%');
 
     // Define color mappings for the specific permit types
@@ -100,8 +101,12 @@ export const Dashboard: React.FC = () => {
                 }
 
                 // Cargar datos de HSE para la pirámide
-                const eventos = await getEventos();
+                const [eventos, novedades] = await Promise.all([
+                    getEventos(),
+                    getNovedades()
+                ]);
                 setEventosData(eventos || []);
+                setNovedadesData(novedades || []);
             } catch (error) {
                 console.error("Error al cargar data del dashboard:", error);
             }
@@ -125,6 +130,12 @@ export const Dashboard: React.FC = () => {
         const matchesCentro = selectedCentro === 'All' || (e.centro?.name || 'Sin Asignar') === selectedCentro;
         const matchesSupervisor = selectedSupervisor === 'All' || (e.supervisor?.name || 'Sin Asignar') === selectedSupervisor;
         return matchesEmpresa && matchesCentro && matchesSupervisor;
+    });
+
+    const filteredNovedadesData = novedadesData.filter(n => {
+        const matchesEmpresa = selectedEmpresa === 'All' || (n.empresa?.name || 'Sin Asignar') === selectedEmpresa;
+        const matchesCentro = selectedCentro === 'All' || (n.centro?.name || 'Sin Asignar') === selectedCentro;
+        return matchesEmpresa && matchesCentro;
     });
 
     const hseStats = {
@@ -291,9 +302,9 @@ export const Dashboard: React.FC = () => {
 
             {/* Tarjetas de Estadísticas */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard title="Permisos Activos" value={stats.total.toString()} trend="+12%" trendType="positive" icon={ShieldCheck} />
+                <StatCard title="Permisos Activos" value={filteredPermisosData.length.toString()} trend="+12%" trendType="positive" icon={ShieldCheck} />
                 <StatCard title="Indicador Ausentismo" value={ausentismoRate} trend="Actual" trendType="meta" icon={Users} />
-                <StatCard title="Puntaje de Seguridad" value="98.5%" trend="+2%" trendType="meta" icon={Users} />
+                <StatCard title="Novedades" value={filteredNovedadesData.length.toString()} trend="Reportadas" trendType="meta" icon={FileText} />
                 <StatCard title="Incidentes (Mes)" value={(hseStats.nearMiss + hseStats.fai + hseStats.mti).toString()} trend="-15%" trendType="positive" icon={AlertCircle} />
             </div>
 

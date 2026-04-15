@@ -349,15 +349,24 @@ export async function deleteEvento(id: string) {
 // REPORTE DE NOVEDADES
 // ============================================================
 
-export async function getNovedades() {
-    const { data, error } = await supabase
+export async function getNovedades(filters?: { empresaId?: string; centroCostoId?: string }) {
+    let query = supabase
         .from('reporte_novedades')
         .select(`
             *,
-            empresa:empresas_cliente(id, name),
-            centro:centros_costo(id, name, code)
+            empresa:empresa_id(id, name),
+            centro:centro_costo_id(id, name, code)
         `)
-        .order('created_at', { ascending: false });
+        .order('fecha', { ascending: false });
+
+    if (filters?.empresaId) {
+        query = query.eq('empresa_id', filters.empresaId);
+    }
+    if (filters?.centroCostoId) {
+        query = query.eq('centro_costo_id', filters.centroCostoId);
+    }
+
+    const { data, error } = await query;
     if (error) throw error;
     return data;
 }
@@ -502,9 +511,7 @@ export async function getProfileByToken(token: string) {
             id,
             full_name,
             empresa_cliente_id,
-            empresa_cliente:empresa_cliente_id(id, name),
             centro_costo_id,
-            centro_costo:centro_costo_id(id, name),
             access_token
         `)
         .eq('access_token', token)
