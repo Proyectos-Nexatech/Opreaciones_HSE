@@ -279,15 +279,41 @@ export const DashboardPublico: React.FC = () => {
                         <h3 className="text-lg font-black text-brand-text mb-1 italic">Permisos Revalidados</h3>
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-8">Consolidado por Categoría</p>
                         
-                        <div className="flex-1 min-h-[250px]">
+                        <div className="flex-1 min-h-[250px] mt-4">
                             {pieData.length > 0 ? (
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={pieData} layout="vertical" margin={{ left: 5, right: 30, top: 0, bottom: 0 }}>
-                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                                        <XAxis type="number" hide />
-                                        <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} width={80} />
+                                    <BarChart 
+                                        data={pieData} 
+                                        layout="vertical" 
+                                        margin={{ left: 40, right: 20, top: 0, bottom: 0 }}
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" vertical={true} horizontal={false} stroke="#f1f5f9" />
+                                        <XAxis 
+                                            type="number" 
+                                            axisLine={{ stroke: '#cbd5e1' }} 
+                                            tickLine={false}
+                                            tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
+                                        />
+                                        <YAxis 
+                                            dataKey="name" 
+                                            type="category" 
+                                            axisLine={{ stroke: '#cbd5e1' }} 
+                                            tickLine={false} 
+                                            tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }} 
+                                            width={100} 
+                                        />
                                         <Tooltip cursor={{ fill: '#f8fafc' }} />
-                                        <Bar dataKey="value" barSize={16} radius={[0, 4, 4, 0]}>
+                                        <Legend 
+                                            verticalAlign="top" 
+                                            align="left" 
+                                            wrapperStyle={{ paddingBottom: '20px', fontSize: '10px', fontWeight: 'black' }}
+                                            formatter={() => <span className="text-slate-500">CANTIDAD</span>}
+                                        />
+                                        <Bar 
+                                            dataKey="value" 
+                                            barSize={24} 
+                                            radius={[0, 4, 4, 0]}
+                                        >
                                             {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={getPermitColor(entry.name)} />)}
                                         </Bar>
                                     </BarChart>
