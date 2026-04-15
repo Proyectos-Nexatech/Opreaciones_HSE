@@ -335,17 +335,31 @@ export const Dashboard: React.FC = () => {
                                     </PieChart>
                                 </ResponsiveContainer>
                             ) : (
-                            {pieData.slice(0, 3).map((item, i) => (
-                                <div key={i} className="flex items-center justify-between group">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: getPermitColor(item.name) }} />
-                                        <span className="text-[10px] font-bold text-brand-text truncate max-w-[120px]">{item.name}</span>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className="text-[10px] font-bold text-brand-text block">{item.porcentaje}%</span>
-                                    </div>
-                                </div>
-                            ))}
+                                <div className="h-full flex items-center justify-center text-slate-300 font-bold border-2 border-dashed border-slate-50 rounded-3xl">Sin datos</div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm flex flex-col">
+                        <h3 className="text-lg font-black text-brand-text mb-1 italic">Permisos Revalidados</h3>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-8">Consolidado por Categoría</p>
+                        
+                        <div className="flex-1 min-h-[250px]">
+                            {pieData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={pieData} layout="vertical" margin={{ left: 5, right: 30, top: 0, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                                        <XAxis type="number" hide />
+                                        <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} width={80} />
+                                        <Tooltip cursor={{ fill: '#f8fafc' }} />
+                                        <Bar dataKey="value" barSize={16} radius={[0, 4, 4, 0]}>
+                                            {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={getPermitColor(entry.name)} />)}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="h-full flex items-center justify-center text-slate-300 font-bold border-2 border-dashed border-slate-50 rounded-3xl">Sin datos</div>
+                            )}
                         </div>
                     </div>
                 </div>
