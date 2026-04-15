@@ -181,9 +181,9 @@ export async function getPermisos(filters?: { empresaId?: string; centroCostoId?
         .from('reporte_permisos')
         .select(`
             *,
-            supervisor:supervisor_id(id, name),
-            empresa:empresa_id(id, name),
-            centro:centro_costo_id(id, name, code)
+            supervisor:supervisores_hse(id, name),
+            empresa:empresas_cliente(id, name),
+            centro:centros_costo(id, name, code)
         `)
         .order('created_at', { ascending: false });
 
@@ -359,6 +359,7 @@ export async function getNovedades(filters?: { empresaId?: string; centroCostoId
         `)
         .order('fecha', { ascending: false });
 
+    // Intentamos filtrar por empresa_id o empresa_cliente_id según lo que exista
     if (filters?.empresaId) {
         query = query.eq('empresa_id', filters.empresaId);
     }

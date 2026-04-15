@@ -64,12 +64,12 @@ export const DashboardPublico: React.FC = () => {
             const profileCentroId = profile.centro_costo_id;
 
             const [permisos, eventos, ausencias, personal, centros, novedades] = await Promise.all([
-                getPermisos({ empresaId, centroCostoId: profileCentroId || undefined }),
-                getEventos({ empresaId, centroCostoId: profileCentroId || undefined }),
-                getAusentismo(),
-                getPersonal(),
-                getCentrosCostoByEmpresa(empresaId),
-                getNovedades({ empresaId, centroCostoId: profileCentroId || undefined })
+                getPermisos({ empresaId, centroCostoId: profileCentroId || undefined }).catch(e => { console.error('P:', e); return []; }),
+                getEventos({ empresaId, centroCostoId: profileCentroId || undefined }).catch(e => { console.error('E:', e); return []; }),
+                getAusentismo().catch(e => { console.error('A:', e); return []; }),
+                getPersonal().catch(e => { console.error('Per:', e); return []; }),
+                getCentrosCostoByEmpresa(empresaId).catch(e => { console.error('C:', e); return []; }),
+                getNovedades({ empresaId, centroCostoId: profileCentroId || undefined }).catch(e => { console.error('N:', e); return []; })
             ]);
 
             setPermisosData(permisos || []);
