@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
+import { cn } from '../lib/utils';
 import {
     AlertCircle,
     Users,
@@ -8,7 +9,8 @@ import {
     Building2,
     ChevronDown,
     Loader2,
-    FileText
+    FileText,
+    ArrowUpRight
 } from 'lucide-react';
 import { getPermisos, getAusentismo, getPersonal, getEventos, getCentrosCostoByEmpresa, getProfileByToken, getNovedades } from '../services/hseService';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';

@@ -357,7 +357,7 @@ export async function getNovedades(filters?: { empresaId?: string; centroCostoId
             empresa:empresa_id(id, name),
             centro:centro_costo_id(id, name, code)
         `)
-        .order('fecha', { ascending: false });
+        .order('created_at', { ascending: false });
 
     // Intentamos filtrar por empresa_id o empresa_cliente_id según lo que exista
     if (filters?.empresaId) {
