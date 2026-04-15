@@ -1,20 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Map, ChevronRight, Filter, Edit3, Trash2, Loader2 } from 'lucide-react';
-import { getCentrosCosto, createCentroCosto, updateCentroCosto, deleteCentroCosto } from '../services/hseService';
+import { getCentrosCosto, createCentroCosto, updateCentroCosto, deleteCentroCosto, getEmpresas } from '../services/hseService';
 import { CentroCostoModal } from '../components/CentroCostoModal';
 
 export const CentrosCosto: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
-    const [centers, setCenters] = useState<any[]>([]);
+    const [centros, setCentros] = useState<any[]>([]);
+    const [empresas, setEmpresas] = useState<any[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingCenter, setEditingCenter] = useState<any>(null);
+    const [editingCentro, setEditingCentro] = useState<any>(null);
+    const [loading, setLoading] = useState(false);
 
     const loadData = async () => {
         try {
-            const data = await getCentrosCosto();
-            setCenters(data || []);
-        } catch (err) {
-            console.error('Error loading centres:', err);
+            setLoading(true);
+            const [centrosData, empresasData] = await Promise.all([
+                getCentrosCosto(),
+                getEmpresas()
+            ]);
+            setCentros(centrosData || []);
+            setEmpresas(empresasData || []);
+        } catch (error) {
+            console.error('Error cargando centros de costo:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -22,23 +31,25 @@ export const CentrosCosto: React.FC = () => {
         loadData();
     }, []);
 
-    const filtered = centers.filter(c => (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()));
+    const filtered = centros.filter(c => (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()));
 
     const handleSave = async (data: any) => {
         try {
             const payload = {
                 name: data.name,
                 code: data.code,
-                location: data.location
+                location: data.location,
+                empresa_id: data.empresa_id
             };
 
-            if (editingCenter) {
-                await updateCentroCosto(editingCenter.id, payload);
+            if (editingCentro) {
+                await updateCentroCosto(editingCentro.id, payload);
             } else {
                 await createCentroCosto(payload);
             }
             loadData();
-            setEditingCenter(null);
+            setEditingCentro(null);
+            setIsModalOpen(false);
         } catch (err) {
             console.error('Error saving centre:', err);
             alert('Error al guardar el centro de costo');
@@ -58,7 +69,7 @@ export const CentrosCosto: React.FC = () => {
     };
 
     const handleEdit = (center: any) => {
-        setEditingCenter(center);
+        setEditingCentro(center);
         setIsModalOpen(true);
     };
 
@@ -82,7 +93,7 @@ export const CentrosCosto: React.FC = () => {
                     </div>
                     <button
                         onClick={() => {
-                            setEditingCenter(null);
+                            setEditingCentro(null);
                             setIsModalOpen(true);
                         }}
                         className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-primary text-white font-semibold hover:brightness-110 shadow-lg shadow-brand-primary/10 transition-all active:scale-95"
@@ -104,7 +115,10 @@ export const CentrosCosto: React.FC = () => {
                                 <div className="p-2 bg-brand-accent rounded-lg text-brand-primary">
                                     <Map className="w-4 h-4" />
                                 </div>
-                                <span className="text-sm font-bold text-brand-text group-hover:text-brand-primary transition-colors">{centro.name}</span>
+                                <div>
+                                    <span className="text-sm font-bold text-brand-text block">{centro.name}</span>
+                                    <span className="text-xs text-brand-text-muted">{centro.empresa?.name || 'Sin empresa'}</span>
+                                </div>
                             </div>
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -125,12 +139,12 @@ export const CentrosCosto: React.FC = () => {
                             </div>
                         </div>
                     ))}
-                    {filtered.length === 0 && centers.length > 0 && (
+                    {filtered.length === 0 && !loading && (
                         <div className="p-20 text-center">
                             <p className="text-brand-text-muted font-bold text-sm tracking-widest uppercase">No se encontraron resultados</p>
                         </div>
                     )}
-                    {centers.length === 0 && (
+                    {loading && (
                         <div className="p-20 text-center">
                             <Loader2 className="w-8 h-8 text-brand-primary animate-spin mx-auto mb-4" />
                             <p className="text-brand-text-muted font-bold text-sm tracking-widest uppercase">Cargando centros de costo...</p>
@@ -141,9 +155,10 @@ export const CentrosCosto: React.FC = () => {
 
             <CentroCostoModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => { setIsModalOpen(false); setEditingCentro(null); }}
                 onSave={handleSave}
-                initialData={editingCenter}
+                initialData={editingCentro}
+                empresas={empresas}
             />
         </div>
     );

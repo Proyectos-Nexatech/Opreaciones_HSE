@@ -124,7 +124,20 @@ export async function deleteEmpresa(id: string) {
 export async function getCentrosCosto() {
     const { data, error } = await supabase
         .from('centros_costo')
+        .select(`
+            *,
+            empresa:empresa_id(id, name)
+        `)
+        .order('name');
+    if (error) throw error;
+    return data;
+}
+
+export async function getCentrosCostoByEmpresa(empresaId: string) {
+    const { data, error } = await supabase
+        .from('centros_costo')
         .select('*')
+        .eq('empresa_id', empresaId)
         .order('name');
     if (error) throw error;
     return data;
@@ -163,8 +176,8 @@ export async function deleteCentroCosto(id: string) {
 // REPORTE DE PERMISOS
 // ============================================================
 
-export async function getPermisos() {
-    const { data, error } = await supabase
+export async function getPermisos(filters?: { empresaId?: string; centroCostoId?: string }) {
+    let query = supabase
         .from('reporte_permisos')
         .select(`
             *,
@@ -173,6 +186,19 @@ export async function getPermisos() {
             centro:centro_costo_id(id, name, code)
         `)
         .order('created_at', { ascending: false });
+
+    // Si no hay sesión (acceso por token), el RLS de Supabase debe estar 
+    // configurado para permitir lectura pública basada en parámetros o vistas seguras.
+    // Para simplificar, asumimos que los filtros aplicados aquí son validados primero por el token.
+
+    if (filters?.empresaId) {
+        query = query.eq('empresa_id', filters.empresaId);
+    }
+    if (filters?.centroCostoId) {
+        query = query.eq('centro_costo_id', filters.centroCostoId);
+    }
+
+    const { data, error } = await query;
     if (error) throw error;
     return data;
 }
@@ -267,8 +293,8 @@ export async function deleteAsistencia(id: string) {
 // REPORTE DE EVENTOS
 // ============================================================
 
-export async function getEventos() {
-    const { data, error } = await supabase
+export async function getEventos(filters?: { empresaId?: string; centroCostoId?: string }) {
+    let query = supabase
         .from('reporte_eventos')
         .select(`
             *,
@@ -277,6 +303,15 @@ export async function getEventos() {
             centro:centros_costo(id, name, code)
         `)
         .order('created_at', { ascending: false });
+
+    if (filters?.empresaId) {
+        query = query.eq('empresa_id', filters.empresaId);
+    }
+    if (filters?.centroCostoId) {
+        query = query.eq('centro_costo_id', filters.centroCostoId);
+    }
+
+    const { data, error } = await query;
     if (error) throw error;
     return data;
 }
@@ -452,9 +487,25 @@ export async function getProfiles() {
         .from('user_profiles')
         .select(`
             *,
-            role:role_name(*)
+            empresa_cliente:empresa_cliente_id(id, name)
         `)
-        .order('created_at', { ascending: false });
+        .order('full_name');
+    if (error) throw error;
+    return data;
+}
+
+export async function getProfileByToken(token: string) {
+    const { data, error } = await supabase
+        .from('user_profiles')
+        .select(`
+            id,
+            full_name,
+            empresa_cliente_id,
+            empresa_cliente:empresa_cliente_id(id, name),
+            access_token
+        `)
+        .eq('access_token', token)
+        .single();
     if (error) throw error;
     return data;
 }

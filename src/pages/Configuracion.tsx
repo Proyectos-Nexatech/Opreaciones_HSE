@@ -41,6 +41,7 @@ export const Configuracion: React.FC = () => {
 
     const [users, setUsers] = useState<any[]>([]);
     const [roles, setRoles] = useState<any[]>([]);
+    const [empresas, setEmpresas] = useState<{ id: string; name: string }[]>([]);
 
     // Confirmation Modal State
     const [confirmModal, setConfirmModal] = useState({
@@ -59,12 +60,14 @@ export const Configuracion: React.FC = () => {
     const loadData = async () => {
         try {
             setLoading(true);
-            const [profilesData, rolesData] = await Promise.all([
+            const [profilesData, rolesData, empresasData] = await Promise.all([
                 hseService.getProfiles(),
-                hseService.getRoles()
+                hseService.getRoles(),
+                hseService.getEmpresas()
             ]);
             setUsers(profilesData);
             setRoles(rolesData);
+            setEmpresas((empresasData || []).map((e: any) => ({ id: e.id, name: e.name })));
         } catch (error) {
             console.error('Error loading configuration data:', error);
             alert('Error al cargar datos. Verifique la conexión con la base de datos.');
@@ -85,7 +88,8 @@ export const Configuracion: React.FC = () => {
                 await hseService.updateProfile(editingUser.id, {
                     full_name: data.full_name,
                     role_name: data.role_name,
-                    status: data.status
+                    status: data.status,
+                    empresa_cliente_id: data.role_name === 'Cliente' ? (data.empresa_cliente_id || null) : null
                 });
             } else {
                 await hseService.createUser(data.email, data.full_name, data.role_name);
@@ -442,6 +446,7 @@ export const Configuracion: React.FC = () => {
                 onSave={handleSaveUser}
                 initialData={editingUser}
                 roles={roles.map(r => r.name)}
+                empresas={empresas}
             />
 
             <RoleConfigModal

@@ -1,10 +1,13 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import { ProtectedRoute } from './components/ProtectedRoute';
+import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Layout } from './components/Layout';
+import { DashboardClienteLayout } from './components/DashboardClienteLayout';
 import { Dashboard } from './pages/Dashboard';
+import { DashboardCliente } from './pages/DashboardCliente';
+import { DashboardPublico } from './pages/DashboardPublico';
 import { NuevoPermiso } from './pages/NuevoPermiso';
 import { ReportesPermisos } from './pages/ReportesPermisos';
 import {
@@ -33,7 +36,19 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+
+          {/* Rutas Públicas (Sin Login) */}
+          <Route path="/view/:token" element={<DashboardPublico />} />
+
+          {/* Rutas para usuarios con rol Cliente (con Login opcional) */}
           <Route element={<ProtectedRoute />}>
+            <Route path="/dashboard-cliente" element={<DashboardClienteLayout />}>
+              <Route index element={<DashboardCliente />} />
+            </Route>
+          </Route>
+
+          {/* Rutas principales — AdminRoute redirige automáticamente a usuarios Cliente */}
+          <Route element={<AdminRoute />}>
             <Route path="/" element={<Layout />}>
               <Route index element={<Dashboard />} />
               <Route path="reportes" element={<ReportesPermisos />} />

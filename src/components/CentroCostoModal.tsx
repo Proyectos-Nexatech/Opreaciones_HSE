@@ -1,31 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Map } from 'lucide-react';
+import { X, Save, Map, Building2 } from 'lucide-react';
 
 interface CentroCostoModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSave: (data: any) => void;
     initialData?: any;
+    empresas?: any[];
 }
 
 export const CentroCostoModal: React.FC<CentroCostoModalProps> = ({
     isOpen,
     onClose,
     onSave,
-    initialData
+    initialData,
+    empresas = []
 }) => {
     const [formData, setFormData] = useState({
         id: '',
-        name: ''
+        name: '',
+        empresa_id: ''
     });
 
     useEffect(() => {
         if (initialData) {
-            setFormData(initialData);
+            setFormData({
+                id: initialData.id || '',
+                name: initialData.name || '',
+                empresa_id: initialData.empresa_id || ''
+            });
         } else {
             setFormData({
                 id: Math.random().toString(36).substr(2, 9),
-                name: ''
+                name: '',
+                empresa_id: ''
             });
         }
     }, [initialData, isOpen]);
@@ -48,8 +56,8 @@ export const CentroCostoModal: React.FC<CentroCostoModalProps> = ({
                             <Map className="w-7 h-7" />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-black tracking-tight">{initialData ? 'Editar Centro de Costo' : 'Nuevo Centro de Costo'}</h2>
-                            <p className="text-white/70 text-xs font-bold uppercase tracking-[0.2em]">{initialData ? 'Modificar unidad operativa' : 'Crear unidad operativa'}</p>
+                            <h2 className="text-2xl font-black tracking-tight">{initialData ? 'Editar Centro' : 'Nuevo Centro'}</h2>
+                            <p className="text-white/70 text-xs font-bold uppercase tracking-[0.2em]">{initialData ? 'Modificar unidad' : 'Crear unidad'}</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="relative z-10 p-3 hover:bg-white/20 rounded-2xl transition-all active:scale-90 bg-white/10">
@@ -60,15 +68,33 @@ export const CentroCostoModal: React.FC<CentroCostoModalProps> = ({
                 <form onSubmit={handleSubmit} className="p-8 space-y-6">
                     <div className="space-y-4">
                         <div className="space-y-1.5">
-                            <label className="text-[11px] font-black text-brand-text-muted uppercase tracking-widest ml-1">Nombre del Centro de Costo</label>
+                            <label className="text-[11px] font-black text-brand-text-muted uppercase tracking-widest ml-1 flex items-center gap-2">
+                                <Map className="w-3 h-3 text-brand-primary" /> Nombre del Centro de Costo
+                            </label>
                             <input
                                 required
                                 type="text"
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                 placeholder="Ej: Zona Norte"
-                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-brand-text focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all placeholder:text-gray-300 shadow-inner"
+                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-brand-text focus:outline-none focus:ring-4 focus:ring-brand-primary/10 transition-all shadow-inner"
                             />
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-[11px] font-black text-brand-text-muted uppercase tracking-widest ml-1 flex items-center gap-2">
+                                <Building2 className="w-3 h-3 text-brand-primary" /> Empresa Cliente (Opcional)
+                            </label>
+                            <select
+                                value={formData.empresa_id}
+                                onChange={(e) => setFormData({ ...formData, empresa_id: e.target.value })}
+                                className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-brand-text focus:outline-none focus:ring-4 focus:ring-brand-primary/10 transition-all shadow-inner appearance-none cursor-pointer"
+                            >
+                                <option value="">No asignar empresa</option>
+                                {empresas.map(emp => (
+                                    <option key={emp.id} value={emp.id}>{emp.name}</option>
+                                ))}
+                            </select>
                         </div>
                     </div>
 
@@ -93,3 +119,4 @@ export const CentroCostoModal: React.FC<CentroCostoModalProps> = ({
         </div>
     );
 };
+

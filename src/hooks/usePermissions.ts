@@ -36,6 +36,11 @@ export const usePermissions = () => {
     const canEdit = (section: string) => hasPermission(`${section}:editar`);
     const canDelete = (section: string) => hasPermission(`${section}:eliminar`);
 
+    const isCliente = () => {
+        const roleName = profile?.role_name || profile?.role?.name;
+        return roleName === 'Cliente';
+    };
+
     return {
         hasPermission,
         hasAnyPermission,
@@ -43,6 +48,7 @@ export const usePermissions = () => {
         canCreate,
         canEdit,
         canDelete,
+        isCliente,
         role: profile?.role_name
     };
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, User, Mail, Shield, ShieldCheck, BadgeCheck, Type, FileText, Trash2, AlertTriangle } from 'lucide-react';
+import { X, Save, User, Mail, Shield, ShieldCheck, BadgeCheck, Type, FileText, Trash2, AlertTriangle, Building2, Link, Copy, CheckCircle2 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -13,6 +13,7 @@ interface UserModalProps {
     onSave: (data: any) => void;
     initialData?: any;
     roles: string[];
+    empresas?: { id: string; name: string }[];
 }
 
 export const UserConfigModal: React.FC<UserModalProps> = ({
@@ -20,15 +21,19 @@ export const UserConfigModal: React.FC<UserModalProps> = ({
     onClose,
     onSave,
     initialData,
-    roles
+    roles,
+    empresas = []
 }) => {
     const [formData, setFormData] = useState({
         id: '',
         full_name: '',
         email: '',
         role_name: '',
-        status: 'Activo'
+        status: 'Activo',
+        empresa_cliente_id: '' as string | null,
+        access_token: '' as string
     });
+    const [copied, setCopied] = useState(false);
 
     useEffect(() => {
         if (initialData) {
@@ -37,7 +42,9 @@ export const UserConfigModal: React.FC<UserModalProps> = ({
                 full_name: initialData.full_name || '',
                 email: initialData.email || '',
                 role_name: initialData.role_name || roles[0] || '',
-                status: initialData.status || 'Activo'
+                status: initialData.status || 'Activo',
+                empresa_cliente_id: initialData.empresa_cliente_id || null,
+                access_token: initialData.access_token || ''
             });
         } else {
             setFormData({
@@ -45,7 +52,9 @@ export const UserConfigModal: React.FC<UserModalProps> = ({
                 full_name: '',
                 email: '',
                 role_name: roles[0] || '',
-                status: 'Activo'
+                status: 'Activo',
+                empresa_cliente_id: null,
+                access_token: ''
             });
         }
     }, [initialData, isOpen, roles]);
@@ -115,7 +124,7 @@ export const UserConfigModal: React.FC<UserModalProps> = ({
                                 <select
                                     required
                                     value={formData.role_name}
-                                    onChange={(e) => setFormData({ ...formData, role_name: e.target.value })}
+                                    onChange={(e) => setFormData({ ...formData, role_name: e.target.value, empresa_cliente_id: null })}
                                     className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-brand-text focus:outline-none focus:ring-4 focus:ring-brand-primary/10 transition-all shadow-inner appearance-none cursor-pointer"
                                 >
                                     {roles.map(role => (
@@ -139,6 +148,60 @@ export const UserConfigModal: React.FC<UserModalProps> = ({
                                 </select>
                             </div>
                         </div>
+
+                        {/* Empresa cliente — solo visible cuando el rol es Cliente */}
+                        {formData.role_name === 'Cliente' && (
+                            <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <label className="flex items-center gap-2 text-[10px] font-black text-brand-text-muted uppercase tracking-widest ml-1">
+                                    <Building2 className="w-3 h-3 text-brand-primary" /> Empresa Cliente Asignada
+                                </label>
+                                <select
+                                    required
+                                    value={formData.empresa_cliente_id || ''}
+                                    onChange={(e) => setFormData({ ...formData, empresa_cliente_id: e.target.value || null })}
+                                    className="w-full bg-blue-50 border border-brand-primary/20 rounded-2xl px-5 py-3.5 text-sm font-bold text-brand-text focus:outline-none focus:ring-4 focus:ring-brand-primary/10 transition-all shadow-inner appearance-none cursor-pointer"
+                                >
+                                    <option value="">-- Seleccionar empresa --</option>
+                                    {empresas.map(emp => (
+                                        <option key={emp.id} value={emp.id}>{emp.name}</option>
+                                    ))}
+                                </select>
+                                <p className="text-[10px] text-brand-text-muted ml-1 font-semibold">
+                                    Esta empresa será el filtro fijo del dashboard del usuario cliente.
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Link de Acceso Público */}
+                        {formData.role_name === 'Cliente' && formData.access_token && (
+                            <div className="p-5 bg-emerald-50 rounded-3xl border border-emerald-100/50 space-y-3 animate-in zoom-in-95 duration-500">
+                                <label className="flex items-center gap-2 text-[10px] font-black text-emerald-600 uppercase tracking-widest ml-1">
+                                    <Link className="w-3 h-3" /> Enlace de Acceso Externo (Propuesta A)
+                                </label>
+                                <div className="flex gap-2">
+                                    <div className="flex-1 bg-white border border-emerald-100 rounded-xl px-4 py-2.5 text-[11px] font-bold text-emerald-800 break-all select-all">
+                                        {`${window.location.origin}/view/${formData.access_token}`}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(`${window.location.origin}/view/${formData.access_token}`);
+                                            setCopied(true);
+                                            setTimeout(() => setCopied(false), 2000);
+                                        }}
+                                        className={cn(
+                                            "p-3 rounded-xl transition-all active:scale-90",
+                                            copied ? "bg-emerald-500 text-white" : "bg-white text-emerald-600 border border-emerald-100 hover:bg-emerald-100"
+                                        )}
+                                    >
+                                        {copied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                    </button>
+                                </div>
+                                <p className="text-[10px] text-emerald-600/70 font-semibold px-1">
+                                    Cualquiera con este enlace puede ver el dashboard sin iniciar sesión.
+                                </p>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex gap-3 pt-4">
