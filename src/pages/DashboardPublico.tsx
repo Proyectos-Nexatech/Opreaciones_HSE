@@ -59,9 +59,11 @@ export const DashboardPublico: React.FC = () => {
 
             // 2. Cargar datos filtrados por la empresa del token
             const empresaId = profile.empresa_cliente_id;
+            const profileCentroId = profile.centro_costo_id;
+
             const [permisos, eventos, ausencias, personal, centros] = await Promise.all([
-                getPermisos({ empresaId }),
-                getEventos({ empresaId }),
+                getPermisos({ empresaId, centroCostoId: profileCentroId || undefined }),
+                getEventos({ empresaId, centroCostoId: profileCentroId || undefined }),
                 getAusentismo(),
                 getPersonal(),
                 getCentrosCostoByEmpresa(empresaId)
@@ -70,6 +72,11 @@ export const DashboardPublico: React.FC = () => {
             setPermisosData(permisos || []);
             setEventosData(eventos || []);
             setCentrosCosto(centros || []);
+            
+            // Si tiene un centro fijo, lo seleccionamos
+            if (profileCentroId) {
+                setSelectedCentroId(profileCentroId);
+            }
 
             // Calcular tasa de ausentismo
             if (personal && personal.length > 0) {
@@ -180,27 +187,39 @@ export const DashboardPublico: React.FC = () => {
             </header>
 
             <main className="flex-1 p-8 max-w-7xl mx-auto w-full space-y-8 animate-in fade-in duration-700">
-                <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm flex flex-col md:flex-row gap-6 items-center">
-                    <div className="flex items-center gap-3 flex-shrink-0">
-                        <div className="w-10 h-10 bg-brand-primary/10 rounded-2xl flex items-center justify-center">
-                            <Map className="w-5 h-5 text-brand-primary" />
+                {/* Ocultar selector si hay un centro fijo asignado */}
+                {!clientProfile?.centro_costo_id && (
+                    <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm flex flex-col md:flex-row gap-6 items-center">
+                        <div className="flex items-center gap-3 flex-shrink-0">
+                            <div className="w-10 h-10 bg-brand-primary/10 rounded-2xl flex items-center justify-center">
+                                <Map className="w-5 h-5 text-brand-primary" />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Filtro Activo</p>
+                                <p className="text-sm font-bold text-brand-text">Centro de Costo</p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Filtro Activo</p>
-                            <p className="text-sm font-bold text-brand-text">Centro de Costo</p>
+                        <div className="flex-1 w-full">
+                            <select
+                                value={selectedCentroId}
+                                onChange={(e) => setSelectedCentroId(e.target.value)}
+                                className="w-full bg-slate-50 border-transparent rounded-2xl py-3.5 px-6 font-bold text-brand-text focus:bg-white focus:ring-4 focus:ring-brand-primary/5 outline-none transition-all cursor-pointer"
+                            >
+                                <option value="All">Todos los centros disponibles</option>
+                                {centrosCosto.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                            </select>
                         </div>
                     </div>
-                    <div className="flex-1 w-full">
-                        <select
-                            value={selectedCentroId}
-                            onChange={(e) => setSelectedCentroId(e.target.value)}
-                            className="w-full bg-slate-50 border-transparent rounded-2xl py-3.5 px-6 font-bold text-brand-text focus:bg-white focus:ring-4 focus:ring-brand-primary/5 outline-none transition-all cursor-pointer"
-                        >
-                            <option value="All">Todos los centros disponibles</option>
-                            {centrosCosto.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                        </select>
+                )}
+
+                {clientProfile?.centro_costo_id && (
+                    <div className="bg-brand-primary/5 p-4 rounded-2xl border border-brand-primary/10 flex items-center gap-3">
+                        <Map className="w-4 h-4 text-brand-primary" />
+                        <p className="text-xs font-bold text-brand-primary">
+                            Vista filtrada para: <span className="uppercase">{clientProfile.centro_costo?.name}</span>
+                        </p>
                     </div>
-                </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <QuickStat icon={ShieldCheck} label="Permisos" value={filteredPermisos.length.toString()} color="blue" />

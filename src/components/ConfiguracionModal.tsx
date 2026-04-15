@@ -14,6 +14,7 @@ interface UserModalProps {
     initialData?: any;
     roles: string[];
     empresas?: { id: string; name: string }[];
+    centrosCosto?: any[];
 }
 
 export const UserConfigModal: React.FC<UserModalProps> = ({
@@ -22,7 +23,8 @@ export const UserConfigModal: React.FC<UserModalProps> = ({
     onSave,
     initialData,
     roles,
-    empresas = []
+    empresas = [],
+    centrosCosto = []
 }) => {
     const [formData, setFormData] = useState({
         id: '',
@@ -31,6 +33,7 @@ export const UserConfigModal: React.FC<UserModalProps> = ({
         role_name: '',
         status: 'Activo',
         empresa_cliente_id: '' as string | null,
+        centro_costo_id: '' as string | null,
         access_token: '' as string
     });
     const [copied, setCopied] = useState(false);
@@ -44,6 +47,7 @@ export const UserConfigModal: React.FC<UserModalProps> = ({
                 role_name: initialData.role_name || roles[0] || '',
                 status: initialData.status || 'Activo',
                 empresa_cliente_id: initialData.empresa_cliente_id || null,
+                centro_costo_id: initialData.centro_costo_id || null,
                 access_token: initialData.access_token || ''
             });
         } else {
@@ -54,6 +58,7 @@ export const UserConfigModal: React.FC<UserModalProps> = ({
                 role_name: roles[0] || '',
                 status: 'Activo',
                 empresa_cliente_id: null,
+                centro_costo_id: null,
                 access_token: ''
             });
         }
@@ -168,6 +173,31 @@ export const UserConfigModal: React.FC<UserModalProps> = ({
                                 </select>
                                 <p className="text-[10px] text-brand-text-muted ml-1 font-semibold">
                                     Esta empresa será el filtro fijo del dashboard del usuario cliente.
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Centro de Costo Específico */}
+                        {formData.role_name === 'Cliente' && formData.empresa_cliente_id && (
+                            <div className="space-y-1.5 animate-in slide-in-from-top-2 duration-300">
+                                <label className="text-[11px] font-black text-brand-text-muted uppercase tracking-widest ml-1 flex items-center gap-2">
+                                    <ShieldCheck className="w-3 h-3 text-brand-primary" /> Centro de Costo (Opcional)
+                                </label>
+                                <select
+                                    value={formData.centro_costo_id || ''}
+                                    onChange={(e) => setFormData({ ...formData, centro_costo_id: e.target.value || null })}
+                                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-brand-text focus:outline-none focus:ring-4 focus:ring-brand-primary/10 transition-all shadow-inner appearance-none cursor-pointer"
+                                >
+                                    <option value="">Todos los centros de la empresa</option>
+                                    {centrosCosto
+                                        .filter(c => c.empresa_id === formData.empresa_cliente_id)
+                                        .map(centro => (
+                                            <option key={centro.id} value={centro.id}>{centro.name}</option>
+                                        ))
+                                    }
+                                </select>
+                                <p className="text-[10px] text-brand-text-muted ml-1 font-semibold">
+                                    Si seleccionas uno, el dashboard se abrirá fijado en este centro.
                                 </p>
                             </div>
                         )}

@@ -487,7 +487,8 @@ export async function getProfiles() {
         .from('user_profiles')
         .select(`
             *,
-            empresa_cliente:empresa_cliente_id(id, name)
+            empresa_cliente:empresa_cliente_id(id, name),
+            centro_costo:centro_costo_id(id, name)
         `)
         .order('full_name');
     if (error) throw error;
@@ -502,6 +503,8 @@ export async function getProfileByToken(token: string) {
             full_name,
             empresa_cliente_id,
             empresa_cliente:empresa_cliente_id(id, name),
+            centro_costo_id,
+            centro_costo:centro_costo_id(id, name),
             access_token
         `)
         .eq('access_token', token)

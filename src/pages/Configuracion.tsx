@@ -42,6 +42,7 @@ export const Configuracion: React.FC = () => {
     const [users, setUsers] = useState<any[]>([]);
     const [roles, setRoles] = useState<any[]>([]);
     const [empresas, setEmpresas] = useState<{ id: string; name: string }[]>([]);
+    const [centrosCosto, setCentrosCosto] = useState<any[]>([]);
 
     // Confirmation Modal State
     const [confirmModal, setConfirmModal] = useState({
@@ -60,14 +61,16 @@ export const Configuracion: React.FC = () => {
     const loadData = async () => {
         try {
             setLoading(true);
-            const [profilesData, rolesData, empresasData] = await Promise.all([
+            const [profilesData, rolesData, empresasData, centrosData] = await Promise.all([
                 hseService.getProfiles(),
                 hseService.getRoles(),
-                hseService.getEmpresas()
+                hseService.getEmpresas(),
+                hseService.getCentrosCosto()
             ]);
             setUsers(profilesData);
             setRoles(rolesData);
             setEmpresas((empresasData || []).map((e: any) => ({ id: e.id, name: e.name })));
+            setCentrosCosto(centrosData || []);
         } catch (error) {
             console.error('Error loading configuration data:', error);
             alert('Error al cargar datos. Verifique la conexión con la base de datos.');
@@ -89,7 +92,8 @@ export const Configuracion: React.FC = () => {
                     full_name: data.full_name,
                     role_name: data.role_name,
                     status: data.status,
-                    empresa_cliente_id: data.role_name === 'Cliente' ? (data.empresa_cliente_id || null) : null
+                    empresa_cliente_id: data.role_name === 'Cliente' ? (data.empresa_cliente_id || null) : null,
+                    centro_costo_id: data.role_name === 'Cliente' ? (data.centro_costo_id || null) : null
                 });
             } else {
                 await hseService.createUser(data.email, data.full_name, data.role_name);
@@ -447,6 +451,7 @@ export const Configuracion: React.FC = () => {
                 initialData={editingUser}
                 roles={roles.map(r => r.name)}
                 empresas={empresas}
+                centrosCosto={centrosCosto}
             />
 
             <RoleConfigModal
