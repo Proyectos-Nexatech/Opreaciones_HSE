@@ -146,10 +146,10 @@ export const ReporteEventoModal: React.FC<ReporteEventoModalProps> = ({
                                 {[
                                     ...(supervisores.length > 0 ? supervisores : supervisoresHSE)
                                         .filter(s => s.status?.toLowerCase() === 'activo')
-                                        .map((s: any) => ({ ...s, id: `s-${s.id}` })),
+                                        .map((s: any) => ({ ...s, originalId: s.id, id: `s-${s.id}` })),
                                 ].filter((v, i, a) => a.findIndex(t => t.name === v.name) === i)
                                  .map(p => (
-                                    <option key={p.id} value={p.name}>{p.name}</option>
+                                    <option key={p.id} value={p.originalId}>{p.name}</option>
                                 ))}
                             </select>
                             <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
