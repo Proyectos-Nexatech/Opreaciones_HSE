@@ -7,15 +7,16 @@ export const config = {
     },
 };
 
-async function createJWT(serviceAccount) {
+async function createJWT(serviceAccount, impersonateEmail) {
     const now = Math.floor(Date.now() / 1000);
     const header = { alg: 'RS256', typ: 'JWT' };
     const payload = {
         iss: serviceAccount.client_email,
-        scope: 'https://www.googleapis.com/auth/drive.file',
+        scope: 'https://www.googleapis.com/auth/drive',
         aud: 'https://oauth2.googleapis.com/token',
         exp: now + 3600,
         iat: now,
+        sub: impersonateEmail, // Domain-wide delegation: act as this user
     };
 
     const encode = (obj) =>
@@ -39,8 +40,8 @@ async function createJWT(serviceAccount) {
     return `${signingInput}.${signature}`;
 }
 
-async function getAccessToken(serviceAccount) {
-    const jwt = await createJWT(serviceAccount);
+async function getAccessToken(serviceAccount, impersonateEmail) {
+    const jwt = await createJWT(serviceAccount, impersonateEmail);
 
     const response = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
@@ -74,16 +75,17 @@ export default async function handler(req, res) {
 
     const serviceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
     const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+    const impersonateEmail = process.env.GOOGLE_IMPERSONATE_EMAIL;
 
-    if (!serviceAccountKey || !folderId) {
+    if (!serviceAccountKey || !folderId || !impersonateEmail) {
         return res.status(500).json({
-            error: 'Server configuration error: Google Drive credentials not set.',
+            error: `Server configuration error: Missing env vars. Key:${!!serviceAccountKey} Folder:${!!folderId} Email:${!!impersonateEmail}`,
         });
     }
 
     try {
         const serviceAccount = JSON.parse(serviceAccountKey);
-        const accessToken = await getAccessToken(serviceAccount);
+        const accessToken = await getAccessToken(serviceAccount, impersonateEmail);
 
         // Read raw multipart body
         const chunks = [];
