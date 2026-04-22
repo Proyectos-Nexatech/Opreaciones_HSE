@@ -27,16 +27,7 @@ export const Header: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1 pr-4 border-r border-gray-100">
-                        <button className="p-2.5 rounded-xl hover:bg-gray-50 text-brand-text-muted hover:text-brand-text transition-all relative group">
-                            <Mail className="w-5 h-5" />
-                            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-brand-primary rounded-full border-2 border-white shadow-sm" />
-                        </button>
-                        <button className="p-2.5 rounded-xl hover:bg-gray-50 text-brand-text-muted hover:text-brand-text transition-all relative">
-                            <Bell className="w-5 h-5" />
-                            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-brand-error rounded-full border-2 border-white" />
-                        </button>
-                    </div>
+
 
                     <div
                         className="flex items-center gap-4 pl-2 group cursor-pointer hover:opacity-80 transition-opacity"

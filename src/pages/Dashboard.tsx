@@ -254,12 +254,6 @@ export const Dashboard: React.FC = () => {
                         <Calendar className="w-4 h-4" />
                         <span className="text-sm">Filtrar Fecha</span>
                     </button>
-                    <Link
-                        to="/reportes-permisos"
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-primary text-white font-semibold hover:brightness-110 shadow-lg shadow-brand-primary/10 transition-all active:scale-95"
-                    >
-                        <span className="text-lg">+</span> Crear Reporte
-                    </Link>
                 </div>
             </div>
 
