@@ -3,7 +3,7 @@ import { X, Calendar, User, Users, Mail, Building2, MapPin, ClipboardList, Plus,
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { supervisoresHSE } from '../data/supervisoresHSE';
-import { allPersonal, centrosCosto, empresasCliente } from '../data/sharedData';
+// import { allPersonal, centrosCosto, empresasCliente } from '../data/sharedData'; // Removed mock dependency
 import { supabase } from '../lib/supabaseClient';
 
 function cn(...inputs: ClassValue[]) {
@@ -15,13 +15,21 @@ interface ReporteAsistenciaModalProps {
     onClose: () => void;
     onSave: (data: any) => void;
     initialData?: any;
+    personal?: any[];
+    supervisores?: any[];
+    centros?: any[];
+    empresas?: any[];
 }
 
 export const ReporteAsistenciaModal: React.FC<ReporteAsistenciaModalProps> = ({
     isOpen,
     onClose,
     onSave,
-    initialData
+    initialData,
+    personal = [],
+    supervisores = [],
+    centros = [],
+    empresas = []
 }) => {
     const [formData, setFormData] = useState({
         name: '',
@@ -63,7 +71,7 @@ export const ReporteAsistenciaModal: React.FC<ReporteAsistenciaModalProps> = ({
                 setSelectedPersons([initialData.personId]);
             } else if (initialData.name) {
                 // Try to find person by name if ID is missing (legacy records)
-                const person = allPersonal.find(p => p.name === initialData.name);
+                const person = personal.find(p => p.name === initialData.name);
                 if (person) {
                     setSelectedPersons([person.id]);
                 }
@@ -153,8 +161,13 @@ export const ReporteAsistenciaModal: React.FC<ReporteAsistenciaModalProps> = ({
                                 className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary appearance-none"
                             >
                                 <option value="">Seleccione una opción</option>
-                                {supervisoresHSE.map(s => (
-                                    <option key={s.id} value={s.id}>{s.name}</option>
+                                {[
+                                    ...(supervisores.length > 0 ? supervisores : supervisoresHSE)
+                                        .filter(s => s.status?.toLowerCase() === 'activo')
+                                        .map((s: any) => ({ ...s, id: `s-${s.id}` })),
+                                ].filter((v, i, a) => a.findIndex(t => t.name === v.name) === i) // Unique by name
+                                 .map(p => (
+                                    <option key={p.id} value={p.name}>{p.name}</option>
                                 ))}
                             </select>
                             <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -215,7 +228,7 @@ export const ReporteAsistenciaModal: React.FC<ReporteAsistenciaModalProps> = ({
                                 className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary appearance-none"
                             >
                                 <option value="">Seleccione una opción</option>
-                                {empresasCliente.map(e => (
+                                {empresas.map(e => (
                                     <option key={e.id} value={e.id}>{e.name}</option>
                                 ))}
                             </select>
@@ -236,7 +249,7 @@ export const ReporteAsistenciaModal: React.FC<ReporteAsistenciaModalProps> = ({
                                 className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary appearance-none"
                             >
                                 <option value="">Seleccione una opción</option>
-                                {centrosCosto.map(c => (
+                                {centros.map(c => (
                                     <option key={c.id} value={c.id}>{c.name}</option>
                                 ))}
                             </select>
@@ -276,10 +289,12 @@ export const ReporteAsistenciaModal: React.FC<ReporteAsistenciaModalProps> = ({
                                 />
                             </div>
                             <div className="max-h-60 overflow-y-auto p-2 space-y-0.5 custom-scrollbar">
-                                {allPersonal.filter(p =>
-                                    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                    p.role.toLowerCase().includes(searchTerm.toLowerCase())
-                                ).map(p => (
+                                {personal.filter(p => {
+                                    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                        p.role.toLowerCase().includes(searchTerm.toLowerCase());
+                                    const matchesCentro = !formData.centro || p.centro_costo_id === formData.centro;
+                                    return matchesSearch && matchesCentro;
+                                }).map(p => (
                                     <label key={p.id} className="flex items-center gap-3 p-2.5 hover:bg-brand-primary/5 rounded-lg cursor-pointer transition-all group select-none">
                                         <div className={cn(
                                             "w-5 h-5 rounded-md border flex items-center justify-center transition-all shadow-sm",
@@ -314,7 +329,11 @@ export const ReporteAsistenciaModal: React.FC<ReporteAsistenciaModalProps> = ({
                                         </div>
                                     </label>
                                 ))}
-                                {allPersonal.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
+                                {personal.filter(p => {
+                                    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
+                                    const matchesCentro = !formData.centro || p.centro_costo_id === formData.centro;
+                                    return matchesSearch && matchesCentro;
+                                }).length === 0 && (
                                     <div className="flex flex-col items-center justify-center py-8 text-gray-400">
                                         <User className="w-8 h-8 opacity-20 mb-2" />
                                         <p className="text-xs font-medium">No se encontraron resultados</p>

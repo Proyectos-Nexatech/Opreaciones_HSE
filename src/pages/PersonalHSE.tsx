@@ -136,6 +136,22 @@ export const PersonalHSE: React.FC = () => {
 
     const confirmDelete = async () => {
         if (!supervisorToDelete) return;
+
+        // Si el supervisor está activo, primero lo desactivamos
+        if (supervisorToDelete.status === 'Activo') {
+            try {
+                await updateSupervisorHSE(supervisorToDelete.id, { ...supervisorToDelete, status: 'Inactivo' });
+                setSupervisorToDelete(null);
+                setSelectedSupervisor(null);
+                loadData();
+            } catch (err) {
+                console.error('Error deactivating supervisor:', err);
+                alert('Error al desactivar el supervisor');
+            }
+            return;
+        }
+
+        // Si ya está inactivo, intentamos eliminación física
         try {
             await deleteSupervisorHSE(supervisorToDelete.id);
             setSupervisorToDelete(null);
@@ -143,7 +159,7 @@ export const PersonalHSE: React.FC = () => {
             loadData();
         } catch (err) {
             console.error('Error deleting supervisor:', err);
-            alert('Error al eliminar el supervisor');
+            alert('No se pudo eliminar el supervisor permanentemente. Es probable que tenga reportes o historia asociada.\n\nSe recomienda mantenerlo como "Inactivo".');
         }
     };
 
@@ -470,16 +486,21 @@ export const PersonalHSE: React.FC = () => {
                             <div className="w-20 h-20 bg-brand-error/10 rounded-[28px] flex items-center justify-center text-brand-error mx-auto mb-6">
                                 <AlertTriangle className="w-10 h-10" />
                             </div>
-                            <h3 className="text-2xl font-black text-brand-text mb-2">¿Confirmar Baja?</h3>
+                            <h3 className="text-2xl font-black text-brand-text mb-2">
+                                {supervisorToDelete.status === 'Activo' ? '¿Desactivar Supervisor?' : '¿Confirmar Eliminación?'}
+                            </h3>
                             <p className="text-brand-text-muted text-sm font-medium mb-8 leading-relaxed">
-                                Vas a eliminar al supervisor <span className="font-bold text-brand-text">{supervisorToDelete.name}</span>. Esta acción no se puede deshacer.
+                                {supervisorToDelete.status === 'Activo' 
+                                    ? `Vas a cambiar el estado de ${supervisorToDelete.name} a Inactivo. No podrá ser seleccionado en nuevos reportes.`
+                                    : `Vas a eliminar al supervisor ${supervisorToDelete.name} permanentemente. Esta acción fallará si tiene registros asociados.`
+                                }
                             </p>
                             <div className="flex flex-col gap-3">
                                 <button
                                     onClick={confirmDelete}
                                     className="w-full py-4 bg-brand-error text-white text-xs font-black rounded-2xl hover:brightness-110 shadow-lg shadow-brand-error/20 transition-all uppercase tracking-widest"
                                 >
-                                    Confirmar y Eliminar
+                                    {supervisorToDelete.status === 'Activo' ? 'Desactivar y Mantener Historia' : 'Confirmar y Eliminar'}
                                 </button>
                                 <button
                                     onClick={() => setSupervisorToDelete(null)}

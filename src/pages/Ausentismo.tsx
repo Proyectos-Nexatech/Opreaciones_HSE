@@ -3,7 +3,7 @@ import { Calendar, ArrowUpRight, BarChart3, AlertCircle, Plus, Search, Filter, E
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { ReporteAusentismoModal } from '../components/ReporteAusentismoModal';
-import { getAusentismo, createAusentismo, updateAusentismo, deleteAusentismo as deleteAusentismoService } from '../services/hseService';
+import { getAusentismo, createAusentismo, updateAusentismo, deleteAusentismo as deleteAusentismoService, getPersonal, getSupervisores, getCentrosCosto, getEmpresas } from '../services/hseService';
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -15,11 +15,27 @@ export const Ausentismo: React.FC = () => {
     const [editingReport, setEditingReport] = useState<any>(null);
     const [reports, setReports] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [personal, setPersonal] = useState<any[]>([]);
+    const [supervisores, setSupervisores] = useState<any[]>([]);
+    const [centros, setCentros] = useState<any[]>([]);
+    const [empresas, setEmpresas] = useState<any[]>([]);
 
     const loadData = async () => {
         try {
-            const data = await getAusentismo();
-            const flat = (data || []).map((r: any) => ({
+            const [ausentismoData, personalData, supervisoresData, centrosData, empresasData] = await Promise.all([
+                getAusentismo(),
+                getPersonal(),
+                getSupervisores(),
+                getCentrosCosto(),
+                getEmpresas()
+            ]);
+            
+            setPersonal(personalData || []);
+            setSupervisores(supervisoresData || []);
+            setCentros(centrosData || []);
+            setEmpresas(empresasData || []);
+
+            const flat = (ausentismoData || []).map((r: any) => ({
                 ...r,
                 id: r.id,
                 absentPerson: r.persona_ausente || '',
@@ -242,6 +258,10 @@ export const Ausentismo: React.FC = () => {
                 onClose={() => setIsModalOpen(false)}
                 onSave={handleSave}
                 initialData={editingReport}
+                personal={personal}
+                supervisores={supervisores}
+                centros={centros}
+                empresas={empresas}
             />
         </div>
     );

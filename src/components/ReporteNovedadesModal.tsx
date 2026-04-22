@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Save, Clock, Mail, User, Calendar, Building2, MapPin, Hash, Type, FileText } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { allPersonal, empresasCliente, centrosCosto } from '../data/sharedData';
+// import { allPersonal, empresasCliente, centrosCosto } from '../data/sharedData'; // Removed mock dependency
 import { supervisoresHSE } from '../data/supervisoresHSE';
 import { supabase } from '../lib/supabaseClient';
 
@@ -15,13 +15,21 @@ interface ReporteNovedadesModalProps {
     onClose: () => void;
     onSave: (data: any) => void;
     initialData?: any;
+    personal?: any[];
+    supervisores?: any[];
+    centros?: any[];
+    empresas?: any[];
 }
 
 export const ReporteNovedadesModal: React.FC<ReporteNovedadesModalProps> = ({
     isOpen,
     onClose,
     onSave,
-    initialData
+    initialData,
+    personal = [],
+    supervisores = [],
+    centros = [],
+    empresas = []
 }) => {
     const [formData, setFormData] = useState({
         id: '',
@@ -38,9 +46,10 @@ export const ReporteNovedadesModal: React.FC<ReporteNovedadesModalProps> = ({
     });
 
     const reporters = [
-        ...allPersonal.map(p => ({ ...p, id: `p-${p.id}` })),
-        ...supervisoresHSE.map(s => ({ ...s, id: `s-${s.id}` }))
-    ];
+        ...(supervisores.length > 0 ? supervisores : supervisoresHSE)
+            .filter(s => s.status?.toLowerCase() === 'activo')
+            .map((s: any) => ({ ...s, id: `s-${s.id}` })),
+    ].filter((v, i, a) => a.findIndex(t => t.name === v.name) === i); // Unique by name
 
     useEffect(() => {
         supabase.auth.getUser().then(({ data }) => {
@@ -204,7 +213,7 @@ export const ReporteNovedadesModal: React.FC<ReporteNovedadesModalProps> = ({
                                 className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-sm font-bold text-brand-text focus:outline-none focus:ring-4 focus:ring-brand-primary/10 transition-all shadow-inner appearance-none cursor-pointer"
                             >
                                 <option value="">Seleccione empresa...</option>
-                                {empresasCliente.map(e => (
+                                {empresas.map(e => (
                                     <option key={e.id} value={e.id}>{e.name}</option>
                                 ))}
                             </select>
@@ -223,7 +232,7 @@ export const ReporteNovedadesModal: React.FC<ReporteNovedadesModalProps> = ({
                                 className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-sm font-bold text-brand-text focus:outline-none focus:ring-4 focus:ring-brand-primary/10 transition-all shadow-inner appearance-none cursor-pointer"
                             >
                                 <option value="">Seleccione centro...</option>
-                                {centrosCosto.map(c => (
+                                {centros.map(c => (
                                     <option key={c.id} value={c.id}>{c.name}</option>
                                 ))}
                             </select>

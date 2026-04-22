@@ -3,8 +3,8 @@ import { Search, ChevronRight, Edit3, Trash2, Loader2 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { ReporteAsistenciaModal } from '../components/ReporteAsistenciaModal';
-import { getAsistencia, createAsistencia, updateAsistencia, deleteAsistencia as deleteAsistenciaService } from '../services/hseService';
-import { allPersonal } from '../data/sharedData';
+import { getAsistencia, createAsistencia, updateAsistencia, deleteAsistencia as deleteAsistenciaService, getPersonal, getSupervisores, getCentrosCosto, getEmpresas } from '../services/hseService';
+// import { allPersonal } from '../data/sharedData'; // Removed mock data dependency
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -14,12 +14,28 @@ export const Asistencia: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState<any>(null);
     const [records, setRecords] = useState<any[]>([]);
+    const [personal, setPersonal] = useState<any[]>([]);
+    const [supervisores, setSupervisores] = useState<any[]>([]);
+    const [centros, setCentros] = useState<any[]>([]);
+    const [empresas, setEmpresas] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     const loadData = async () => {
         try {
-            const data = await getAsistencia();
-            const flat = (data || []).map((r: any) => ({
+            const [asistenciaData, personalData, supervisoresData, centrosData, empresasData] = await Promise.all([
+                getAsistencia(),
+                getPersonal(),
+                getSupervisores(),
+                getCentrosCosto(),
+                getEmpresas()
+            ]);
+            
+            setPersonal(personalData || []);
+            setSupervisores(supervisoresData || []);
+            setCentros(centrosData || []);
+            setEmpresas(empresasData || []);
+
+            const flat = (asistenciaData || []).map((r: any) => ({
                 ...r,
                 id: r.id,
                 name: r.nombre_persona || '',
@@ -57,7 +73,7 @@ export const Asistencia: React.FC = () => {
                 // taking the first selected person if changed, or keeping existing logic.
                 // Assuming we update the person if one is selected.
                 const personId = data.personIds && data.personIds.length > 0 ? data.personIds[0] : null;
-                const person = personId ? allPersonal.find(p => p.id === personId) : null;
+                const person = personId ? personal.find(p => p.id === personId) : null;
 
                 const payload = {
                     nombre_persona: person ? person.name : (data.name || editingRecord.name),
@@ -74,7 +90,7 @@ export const Asistencia: React.FC = () => {
                 // Create new records
                 if (data.personIds && data.personIds.length > 0) {
                     const promises = data.personIds.map((id: string) => {
-                        const person = allPersonal.find(p => p.id === id);
+                        const person = personal.find(p => p.id === id);
                         const payload = {
                             nombre_persona: person ? person.name : 'Unknown',
                             hora_ingreso: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
@@ -270,6 +286,10 @@ export const Asistencia: React.FC = () => {
                 onClose={() => { setIsModalOpen(false); setEditingRecord(null); }}
                 onSave={handleSave}
                 initialData={editingRecord}
+                personal={personal}
+                supervisores={supervisores}
+                centros={centros}
+                empresas={empresas}
             />
         </div>
     );

@@ -3,7 +3,7 @@ import { X, Calendar, User, Mail, Building2, MapPin, ClipboardList, Plus, AlertC
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { supervisoresHSE } from '../data/supervisoresHSE';
-import { allPersonal, centrosCosto, empresasCliente } from '../data/sharedData';
+// import { allPersonal, centrosCosto, empresasCliente } from '../data/sharedData'; // Removed mock dependency
 import { supabase } from '../lib/supabaseClient';
 
 function cn(...inputs: ClassValue[]) {
@@ -15,9 +15,22 @@ interface ReporteEventoModalProps {
     onClose: () => void;
     onSave: (event: any) => void;
     initialData?: any;
+    personal?: any[];
+    supervisores?: any[];
+    centros?: any[];
+    empresas?: any[];
 }
 
-export const ReporteEventoModal: React.FC<ReporteEventoModalProps> = ({ isOpen, onClose, onSave, initialData }) => {
+export const ReporteEventoModal: React.FC<ReporteEventoModalProps> = ({ 
+    isOpen, 
+    onClose, 
+    onSave, 
+    initialData,
+    personal = [],
+    supervisores = [],
+    centros = [],
+    empresas = []
+}) => {
     const [currentTime, setCurrentTime] = useState(new Date().toLocaleString());
     const [shift, setShift] = useState<'Dia' | 'Noche'>('Dia');
 
@@ -130,7 +143,14 @@ export const ReporteEventoModal: React.FC<ReporteEventoModalProps> = ({ isOpen, 
                                 className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary appearance-none"
                             >
                                 <option value="">Seleccione una opción</option>
-                                {supervisoresHSE.map(s => <option key={`s-${s.id}`} value={s.id}>{s.name}</option>)}
+                                {[
+                                    ...(supervisores.length > 0 ? supervisores : supervisoresHSE)
+                                        .filter(s => s.status?.toLowerCase() === 'activo')
+                                        .map((s: any) => ({ ...s, id: `s-${s.id}` })),
+                                ].filter((v, i, a) => a.findIndex(t => t.name === v.name) === i)
+                                 .map(p => (
+                                    <option key={p.id} value={p.name}>{p.name}</option>
+                                ))}
                             </select>
                             <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
                                 <Plus className="w-4 h-4 text-gray-400 rotate-45" />
@@ -176,7 +196,7 @@ export const ReporteEventoModal: React.FC<ReporteEventoModalProps> = ({ isOpen, 
                                     className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-10 text-sm text-gray-800 focus:outline-none"
                                 >
                                     <option value="">Seleccione una opción</option>
-                                    {empresasCliente.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+                                    {empresas.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
                                 </select>
                             </div>
                         </div>
@@ -190,7 +210,7 @@ export const ReporteEventoModal: React.FC<ReporteEventoModalProps> = ({ isOpen, 
                                     className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-10 text-sm text-gray-800 focus:outline-none"
                                 >
                                     <option value="">Seleccione una opción</option>
-                                    {centrosCosto.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                    {centros.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                 </select>
                             </div>
                         </div>
@@ -277,7 +297,10 @@ export const ReporteEventoModal: React.FC<ReporteEventoModalProps> = ({ isOpen, 
                                 className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-10 text-sm text-gray-800 focus:outline-none"
                             >
                                 <option value="">Seleccione una opción</option>
-                                {allPersonal.map(p => <option key={`p-${p.id}`} value={p.id}>{p.name} - {p.role}</option>)}
+                                {personal
+                                    .filter(p => !formData.centroCostoId || p.centro_costo_id === formData.centroCostoId)
+                                    .map(p => <option key={`p-${p.id}`} value={p.id}>{p.name} - {p.role}</option>)
+                                }
                             </select>
                         </div>
                     </div>

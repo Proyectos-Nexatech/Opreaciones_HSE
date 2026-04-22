@@ -43,6 +43,7 @@ export const ReportesPermisos: React.FC = () => {
     const [selectedPersonal, setSelectedPersonal] = useState<string[]>([]);
     const [personalDropdownOpen, setPersonalDropdownOpen] = useState(false);
     const [personalSearch, setPersonalSearch] = useState('');
+    const [selectedCentroId, setSelectedCentroId] = useState<string>('');
     const [editingReport, setEditingReport] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -103,11 +104,13 @@ export const ReportesPermisos: React.FC = () => {
             flatReports.forEach((r: any) => {
                 if (r.supervisor) supCounts[r.supervisor] = (supCounts[r.supervisor] || 0) + 1;
             });
-            const sups = (supervisoresData || []).map((s: any) => ({
-                id: s.id,
-                name: s.name,
-                count: supCounts[s.name] || 0
-            }));
+            const sups = (supervisoresData || [])
+                .filter((s: any) => s.status?.toLowerCase() === 'activo')
+                .map((s: any) => ({
+                    id: s.id,
+                    name: s.name,
+                    count: supCounts[s.name] || 0
+                }));
             setSupervisors(sups);
         } catch (err) {
             console.error('Error loading permisos:', err);
@@ -126,6 +129,7 @@ export const ReportesPermisos: React.FC = () => {
         setIsModalOpen(false);
         setEditingReport(null);
         setSelectedPersonal([]);
+        setSelectedCentroId('');
         setPersonalSearch('');
         setPersonalDropdownOpen(false);
         setSaving(false);
@@ -175,6 +179,7 @@ export const ReportesPermisos: React.FC = () => {
         setEditingReport(report);
         setJornada(report.jornada);
         setSelectedPersonal(report.personal_ids || []);
+        setSelectedCentroId(report.centro_costo_id || '');
         setIsModalOpen(true);
     };
 
@@ -650,9 +655,10 @@ export const ReportesPermisos: React.FC = () => {
                                             <label className="text-[10px] font-bold text-brand-text-muted uppercase tracking-widest ml-1">Centro de Costos</label>
                                             <div className="relative group">
                                                 <Map className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-text-muted group-focus-within:text-brand-primary transition-colors" />
-                                                <select
+                                                 <select
                                                     name="centro"
-                                                    defaultValue={editingReport?.centro_costo_id || ''}
+                                                    value={selectedCentroId}
+                                                    onChange={(e) => setSelectedCentroId(e.target.value)}
                                                     className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-11 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/50 transition-all appearance-none cursor-pointer text-brand-text font-semibold shadow-sm"
                                                 >
                                                     <option value="">Seleccionar Centro de Costos</option>
@@ -835,10 +841,13 @@ export const ReportesPermisos: React.FC = () => {
                                                     </div>
                                                     <div className="max-h-52 overflow-y-auto scrollbar-thin">
                                                         {personal
-                                                            .filter((p: any) =>
-                                                                p.name.toLowerCase().includes(personalSearch.toLowerCase()) ||
-                                                                (p.role || '').toLowerCase().includes(personalSearch.toLowerCase())
-                                                            )
+                                                            .filter((p: any) => {
+                                                                const matchesSearch = p.name.toLowerCase().includes(personalSearch.toLowerCase()) ||
+                                                                    (p.role || '').toLowerCase().includes(personalSearch.toLowerCase());
+                                                                const matchesCentro = !selectedCentroId || p.centro_costo_id === selectedCentroId;
+                                                                const isActive = p.status?.toLowerCase() === 'activo';
+                                                                return matchesSearch && matchesCentro && isActive;
+                                                            })
                                                             .map((person: any) => {
                                                                 const isSelected = selectedPersonal.includes(person.id);
                                                                 return (

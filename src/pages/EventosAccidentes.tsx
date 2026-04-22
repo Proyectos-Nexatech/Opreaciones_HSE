@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldAlert, Search, Plus, Trash2, Edit3, Loader2 } from 'lucide-react';
 import { ReporteEventoModal } from '../components/ReporteEventoModal';
-import { getEventos, deleteEvento, createEvento, updateEvento } from '../services/hseService';
+import { getEventos, deleteEvento, createEvento, updateEvento, getPersonal, getSupervisores, getCentrosCosto, getEmpresas } from '../services/hseService';
 
 
 export const EventosAccidentes: React.FC = () => {
@@ -10,11 +10,27 @@ export const EventosAccidentes: React.FC = () => {
     const [editingReport, setEditingReport] = useState<any>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
+    const [personal, setPersonal] = useState<any[]>([]);
+    const [supervisores, setSupervisores] = useState<any[]>([]);
+    const [centros, setCentros] = useState<any[]>([]);
+    const [empresas, setEmpresas] = useState<any[]>([]);
 
     const loadData = async () => {
         try {
-            const data = await getEventos();
-            const flat = (data || []).map((e: any) => ({
+            const [eventosData, personalData, supervisoresData, centrosData, empresasData] = await Promise.all([
+                getEventos(),
+                getPersonal(),
+                getSupervisores(),
+                getCentrosCosto(),
+                getEmpresas()
+            ]);
+            
+            setPersonal(personalData || []);
+            setSupervisores(supervisoresData || []);
+            setCentros(centrosData || []);
+            setEmpresas(empresasData || []);
+
+            const flat = (eventosData || []).map((e: any) => ({
                 ...e,
                 id: e.id,
                 fechaReporte: e.fecha_reporte || '',
@@ -249,6 +265,10 @@ export const EventosAccidentes: React.FC = () => {
                 onClose={() => setIsModalOpen(false)}
                 onSave={handleSave}
                 initialData={editingReport}
+                personal={personal}
+                supervisores={supervisores}
+                centros={centros}
+                empresas={empresas}
             />
         </div>
     );

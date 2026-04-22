@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ClipboardList, Filter, Search, Edit3, Trash2, Plus, Clock, Loader2 } from 'lucide-react';
 import { ReporteNovedadesModal } from '../components/ReporteNovedadesModal';
-import { getNovedades, createNovedad, updateNovedad, deleteNovedad as deleteNovedadService } from '../services/hseService';
+import { getNovedades, createNovedad, updateNovedad, deleteNovedad as deleteNovedadService, getPersonal, getSupervisores, getCentrosCosto, getEmpresas } from '../services/hseService';
 
 export const Novedades: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -9,12 +9,28 @@ export const Novedades: React.FC = () => {
     const [editingNovedad, setEditingNovedad] = useState<any>(null);
     const [novedades, setNovedades] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [personal, setPersonal] = useState<any[]>([]);
+    const [supervisores, setSupervisores] = useState<any[]>([]);
+    const [centros, setCentros] = useState<any[]>([]);
+    const [empresas, setEmpresas] = useState<any[]>([]);
 
     const loadData = async () => {
         try {
-            const data = await getNovedades();
-            console.log('Novedades data loaded:', data);
-            const flat = (data || []).map((n: any) => ({
+            const [novedadesData, personalData, supervisoresData, centrosData, empresasData] = await Promise.all([
+                getNovedades(),
+                getPersonal(),
+                getSupervisores(),
+                getCentrosCosto(),
+                getEmpresas()
+            ]);
+            
+            setPersonal(personalData || []);
+            setSupervisores(supervisoresData || []);
+            setCentros(centrosData || []);
+            setEmpresas(empresasData || []);
+
+            console.log('Novedades data loaded:', novedadesData);
+            const flat = (novedadesData || []).map((n: any) => ({
                 ...n,
                 id: n.id,
                 time: n.created_at ? new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
@@ -215,6 +231,10 @@ export const Novedades: React.FC = () => {
                 onClose={() => setIsModalOpen(false)}
                 onSave={handleSave}
                 initialData={editingNovedad}
+                personal={personal}
+                supervisores={supervisores}
+                centros={centros}
+                empresas={empresas}
             />
         </div>
     );

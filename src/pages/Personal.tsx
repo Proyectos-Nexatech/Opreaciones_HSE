@@ -131,6 +131,22 @@ export const Personal: React.FC = () => {
 
     const confirmDelete = async () => {
         if (!personToDelete) return;
+        
+        // Si el personal está activo, la primera acción es desactivarlo (Soft Delete)
+        if (personToDelete.status === 'Activo') {
+            try {
+                await updatePersonal(personToDelete.id, { ...personToDelete, status: 'Inactivo' });
+                setPersonToDelete(null);
+                setSelectedPerson(null);
+                loadData();
+            } catch (err) {
+                console.error('Error deactivating person:', err);
+                alert('Error al desactivar el personal');
+            }
+            return;
+        }
+
+        // Si ya está inactivo, intentamos eliminarlo permanentemente (Hard Delete)
         try {
             await deletePersonal(personToDelete.id);
             setPersonToDelete(null);
@@ -138,7 +154,7 @@ export const Personal: React.FC = () => {
             loadData();
         } catch (err) {
             console.error('Error deleting person:', err);
-            alert('Error al eliminar personal');
+            alert('No se pudo eliminar el registro permanentemente. Es probable que esta persona tenga reportes o historia asociada.\n\nSe recomienda mantenerla como "Inactivo".');
         }
     };
 
@@ -477,16 +493,21 @@ export const Personal: React.FC = () => {
                         <div className="w-20 h-20 bg-brand-error/10 rounded-[28px] flex items-center justify-center text-brand-error mx-auto mb-6">
                             <AlertTriangle className="w-10 h-10" />
                         </div>
-                        <h3 className="text-2xl font-black text-brand-text mb-2">¿Confirmar Baja?</h3>
+                        <h3 className="text-2xl font-black text-brand-text mb-2">
+                            {personToDelete.status === 'Activo' ? '¿Desactivar Personal?' : '¿Confirmar Eliminación?'}
+                        </h3>
                         <p className="text-brand-text-muted text-sm font-medium mb-8 leading-relaxed">
-                            Vas a eliminar a <span className="font-bold text-brand-text">{personToDelete.name}</span>. Esta acción no se puede deshacer.
+                            {personToDelete.status === 'Activo' 
+                                ? `Vas a cambiar el estado de ${personToDelete.name} a Inactivo. No podrá ser seleccionado en nuevos reportes.`
+                                : `Vas a eliminar a ${personToDelete.name} permanentemente. Esta acción fallará si tiene registros asociados.`
+                            }
                         </p>
                         <div className="flex flex-col gap-3">
                             <button
                                 onClick={confirmDelete}
                                 className="w-full py-4 bg-brand-error text-white text-xs font-black rounded-2xl hover:brightness-110 shadow-lg shadow-brand-error/20 transition-all uppercase tracking-widest"
                             >
-                                Confirmar y Eliminar
+                                {personToDelete.status === 'Activo' ? 'Desactivar y Mantener Historia' : 'Confirmar y Eliminar'}
                             </button>
                             <button
                                 onClick={() => setPersonToDelete(null)}
