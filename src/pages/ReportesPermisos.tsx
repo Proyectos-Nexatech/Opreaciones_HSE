@@ -47,6 +47,8 @@ export const ReportesPermisos: React.FC = () => {
     const [editingReport, setEditingReport] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [uploadingDoc, setUploadingDoc] = useState(false);
+    const [documentoUrl, setDocumentoUrl] = useState<string>('');
     const formRef = useRef<HTMLFormElement>(null);
 
     // Fetch logged-in user email
@@ -133,6 +135,31 @@ export const ReportesPermisos: React.FC = () => {
         setPersonalSearch('');
         setPersonalDropdownOpen(false);
         setSaving(false);
+        setDocumentoUrl('');
+        setUploadingDoc(false);
+    };
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+            setUploadingDoc(true);
+            const fd = new FormData();
+            fd.append('file', file);
+            const response = await fetch('/api/upload-to-drive', {
+                method: 'POST',
+                body: fd,
+            });
+            const result = await response.json();
+            if (!response.ok || result.error) {
+                throw new Error(result.error || 'Error al subir el archivo');
+            }
+            setDocumentoUrl(result.url);
+        } catch (err: any) {
+            alert(`Error al subir el documento: ${err.message}`);
+        } finally {
+            setUploadingDoc(false);
+        }
     };
 
     const handleSave = async (e: React.FormEvent) => {
@@ -156,6 +183,7 @@ export const ReportesPermisos: React.FC = () => {
             personal_ids: selectedPersonal,
             personal_involucrado: selectedPersonal.length > 0 ? selectedPersonal[0] : null,
             propietario_email: (fd.get('propietario') as string) || null,
+            documento_url: documentoUrl || null,
         };
         try {
             setSaving(true);
@@ -180,6 +208,7 @@ export const ReportesPermisos: React.FC = () => {
         setJornada(report.jornada);
         setSelectedPersonal(report.personal_ids || []);
         setSelectedCentroId(report.centro_costo_id || '');
+        setDocumentoUrl(report.documento_url || '');
         setIsModalOpen(true);
     };
 
@@ -917,15 +946,68 @@ export const ReportesPermisos: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    <div className="space-y-4 pt-4 border-t border-gray-50 flex flex-col items-center">
-                                        <label className="text-[10px] font-bold text-brand-text-muted uppercase tracking-widest self-start ml-1">Documento Adjunto (Permiso Firmado)</label>
-                                        <label className="w-full flex flex-col items-center justify-center py-8 border-2 border-dashed border-gray-200 rounded-2xl cursor-pointer hover:bg-gray-50 hover:border-brand-primary/30 transition-all group">
-                                            <div className="w-10 h-10 bg-brand-primary/10 rounded-xl flex items-center justify-center text-brand-primary mb-2 group-hover:scale-110 transition-transform">
-                                                <Upload className="w-5 h-5" />
+                                    <div className="space-y-3 pt-4 border-t border-gray-50">
+                                        <label className="text-[10px] font-bold text-brand-text-muted uppercase tracking-widest ml-1">Documento Adjunto (Permiso Firmado)</label>
+
+                                        {/* Existing document link */}
+                                        {documentoUrl && (
+                                            <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-xl">
+                                                <div className="p-2 bg-green-100 rounded-lg text-green-600 shrink-0">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-xs font-bold text-green-800">Documento subido a Google Drive</p>
+                                                    <a
+                                                        href={documentoUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-[10px] text-green-600 underline truncate block hover:text-green-800 transition-colors"
+                                                    >
+                                                        {documentoUrl}
+                                                    </a>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setDocumentoUrl('')}
+                                                    className="p-1 hover:bg-green-200 rounded-lg transition-colors text-green-600 shrink-0"
+                                                    title="Quitar documento"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
                                             </div>
-                                            <p className="text-xs font-bold text-brand-text">Cargar Archivo PDF / Imagen</p>
-                                            <p className="text-[10px] text-brand-text-muted mt-1">Seleccione el documento firmado en campo</p>
-                                            <input type="file" className="hidden" accept=".pdf,image/*" />
+                                        )}
+
+                                        {/* Upload zone */}
+                                        <label className={cn(
+                                            "w-full flex flex-col items-center justify-center py-6 border-2 border-dashed rounded-2xl transition-all group",
+                                            uploadingDoc
+                                                ? "border-brand-primary/40 bg-brand-primary/5 cursor-not-allowed"
+                                                : "border-gray-200 cursor-pointer hover:bg-gray-50 hover:border-brand-primary/30"
+                                        )}>
+                                            {uploadingDoc ? (
+                                                <>
+                                                    <Loader2 className="w-8 h-8 animate-spin text-brand-primary mb-2" />
+                                                    <p className="text-xs font-bold text-brand-primary">Subiendo a Google Drive...</p>
+                                                    <p className="text-[10px] text-brand-text-muted mt-1">Por favor espere</p>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="w-10 h-10 bg-brand-primary/10 rounded-xl flex items-center justify-center text-brand-primary mb-2 group-hover:scale-110 transition-transform">
+                                                        <Upload className="w-5 h-5" />
+                                                    </div>
+                                                    <p className="text-xs font-bold text-brand-text">
+                                                        {documentoUrl ? 'Reemplazar documento' : 'Cargar Archivo PDF / Imagen'}
+                                                    </p>
+                                                    <p className="text-[10px] text-brand-text-muted mt-1">Se guardará en Google Drive</p>
+                                                </>
+                                            )}
+                                            <input
+                                                type="file"
+                                                className="hidden"
+                                                accept=".pdf,image/*"
+                                                disabled={uploadingDoc}
+                                                onChange={handleFileUpload}
+                                            />
                                         </label>
                                     </div>
                                 </div>
