@@ -33,7 +33,7 @@ const managementItems = [
 ];
 
 const formItems = [
-    { name: 'Reporte diario de permisos', icon: FileText, path: '/reportes', badge: 12, permission: 'reportes' },
+    { name: 'Reporte de Permisos', icon: FileText, path: '/reportes', badge: 12, permission: 'reportes' },
     { name: 'Reporte de asistencia', icon: Users, path: '/asistencia', permission: 'asistencia' },
     { name: 'Reporte de eventos', icon: ShieldCheck, path: '/eventos-accidentes', permission: 'reportes' },
     { name: 'Reporte de Novedades', icon: BarChart3, path: '/novedades', permission: 'novedades' },
@@ -51,7 +51,7 @@ export const Sidebar: React.FC = () => {
     const { canView } = usePermissions();
 
     return (
-        <aside className="w-20 md:w-64 flex flex-col h-screen bg-sidebar-bg border-r border-white/10 p-4 md:p-6 shadow-2xl relative z-30 transition-all duration-300">
+        <aside className="w-20 md:w-72 flex flex-col h-screen bg-sidebar-bg border-r border-white/10 p-4 md:p-6 shadow-2xl relative z-30 transition-all duration-300">
             <div className="flex items-center gap-3 mb-10 px-2 justify-center md:justify-start">
                 <NexatechIcon className="w-10 h-10 transition-transform hover:rotate-3 flex-shrink-0" />
                 <h1 className="text-xl font-extrabold tracking-tight text-white font-outfit leading-tight text-shadow-sm hidden md:block overflow-hidden whitespace-nowrap">
@@ -77,7 +77,7 @@ export const Sidebar: React.FC = () => {
                                 )}
                             >
                                 <dashboardItem.icon className="w-5 h-5 flex-shrink-0" strokeWidth={2.5} />
-                                <span className="font-bold text-[15px] tracking-tight hidden md:block whitespace-nowrap">{dashboardItem.name}</span>
+                                <span className="font-bold text-[15px] tracking-tight hidden md:block">{dashboardItem.name}</span>
                             </NavLink>
                         )}
 
@@ -92,7 +92,7 @@ export const Sidebar: React.FC = () => {
                             >
                                 <div className="flex items-center gap-4 w-full justify-center md:justify-start">
                                     <ClipboardList className="w-5 h-5 flex-shrink-0" strokeWidth={2.5} />
-                                    <span className="font-bold text-[15px] tracking-tight text-left hidden md:block whitespace-nowrap">Formularios</span>
+                                    <span className="font-bold text-[15px] tracking-tight text-left hidden md:block">Formularios</span>
                                 </div>
                                 <ChevronDown className={cn(
                                     "w-4 h-4 transition-transform duration-300 hidden md:block flex-shrink-0",
@@ -118,7 +118,7 @@ export const Sidebar: React.FC = () => {
                                             >
                                                 <div className="flex items-center gap-4">
                                                     <item.icon className="w-4 h-4 md:hidden flex-shrink-0" />
-                                                    <span className="font-semibold text-[14px] tracking-tight leading-tight hidden md:block overflow-hidden whitespace-nowrap">{item.name}</span>
+                                                    <span className="font-semibold text-[14px] tracking-tight leading-tight hidden md:block flex-1">{item.name}</span>
                                                 </div>
                                                 {item.badge && (
                                                     <span className="bg-white text-brand-primary text-[9px] font-black px-1.5 py-0.5 rounded-md shadow-sm ml-2 hidden md:block">
@@ -147,7 +147,7 @@ export const Sidebar: React.FC = () => {
                                     )}
                                 >
                                     <item.icon className="w-5 h-5 flex-shrink-0" strokeWidth={2.5} />
-                                    <span className="font-bold text-[15px] tracking-tight hidden md:block whitespace-nowrap">{item.name}</span>
+                                    <span className="font-bold text-[15px] tracking-tight hidden md:block">{item.name}</span>
                                 </NavLink>
                             );
                         })}
@@ -173,7 +173,7 @@ export const Sidebar: React.FC = () => {
                                     )}
                                 >
                                     <item.icon className="w-5 h-5 flex-shrink-0" strokeWidth={2.5} />
-                                    <span className="font-bold text-[15px] tracking-tight hidden md:block whitespace-nowrap">{item.name}</span>
+                                    <span className="font-bold text-[15px] tracking-tight hidden md:block">{item.name}</span>
                                 </NavLink>
                             );
                         })}
