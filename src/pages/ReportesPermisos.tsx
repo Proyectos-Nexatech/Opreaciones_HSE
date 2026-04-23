@@ -531,7 +531,7 @@ export const ReportesPermisos: React.FC = () => {
                                         <th className="px-6 py-4 text-[11px] font-bold text-brand-text-muted uppercase tracking-wider">Empresa</th>
                                         <th className="px-6 py-4 text-[11px] font-bold text-brand-text-muted uppercase tracking-wider">Ubicación</th>
                                         <th className="px-6 py-4 text-[11px] font-bold text-brand-text-muted uppercase tracking-wider">Tipo</th>
-                                        <th className="px-6 py-4 text-[11px] font-bold text-brand-text-muted uppercase tracking-wider">ID Formato</th>
+                                        <th className="px-6 py-4 text-[11px] font-bold text-brand-text-muted uppercase tracking-wider">Número Permiso</th>
                                         <th className="px-6 py-4 text-right"></th>
                                     </tr>
                                 </thead>
@@ -791,7 +791,7 @@ export const ReportesPermisos: React.FC = () => {
                                         </div>
                                         <div className="space-y-2">
                                             <div className="flex justify-between">
-                                                <label className="text-[10px] font-bold text-brand-text-muted uppercase tracking-widest ml-1">Número de Formato / ID</label>
+                                                <label className="text-[10px] font-bold text-brand-text-muted uppercase tracking-widest ml-1">Número de Permiso</label>
                                                 <label className="text-[10px] font-bold text-brand-text-muted uppercase tracking-widest mr-1">Hora Firma</label>
                                             </div>
                                             <div className="flex gap-2">
