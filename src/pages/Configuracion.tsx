@@ -92,8 +92,8 @@ export const Configuracion: React.FC = () => {
                     full_name: data.full_name,
                     role_name: data.role_name,
                     status: data.status,
-                    empresa_cliente_id: data.role_name === 'Cliente' ? (data.empresa_cliente_id || null) : null,
-                    centro_costo_id: data.role_name === 'Cliente' ? (data.centro_costo_id || null) : null
+                    empresa_cliente_id: (data.role_name === 'Cliente' || data.role_name === 'Supervisor HSE+') ? (data.empresa_cliente_id || null) : null,
+                    centro_costo_id: (data.role_name === 'Cliente' || data.role_name === 'Supervisor HSE+') ? (data.centro_costo_id || null) : null
                 });
             } else {
                 await hseService.createUser(data.email, data.full_name, data.role_name);

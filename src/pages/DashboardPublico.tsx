@@ -59,8 +59,13 @@ export const DashboardPublico: React.FC = () => {
             setLoading(true);
             // 1. Validar token y obtener perfil del cliente
             const profile = await getProfileByToken(token);
-            if (!profile || !profile.empresa_cliente_id) {
-                setError('Token inválido o empresa no asignada.');
+            if (!profile) {
+                setError('Token inválido o no encontrado en el sistema.');
+                setLoading(false);
+                return;
+            }
+            if (!profile.empresa_cliente_id) {
+                setError('El usuario tiene un token válido pero no tiene una empresa cliente asignada.');
                 setLoading(false);
                 return;
             }

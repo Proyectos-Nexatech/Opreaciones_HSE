@@ -154,8 +154,8 @@ export const UserConfigModal: React.FC<UserModalProps> = ({
                             </div>
                         </div>
 
-                        {/* Empresa cliente — solo visible cuando el rol es Cliente */}
-                        {formData.role_name === 'Cliente' && (
+                        {/* Empresa cliente — visible para Cliente y Supervisor HSE+ */}
+                        {(formData.role_name === 'Cliente' || formData.role_name === 'Supervisor HSE+') && (
                             <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
                                 <label className="flex items-center gap-2 text-[10px] font-black text-brand-text-muted uppercase tracking-widest ml-1">
                                     <Building2 className="w-3 h-3 text-brand-primary" /> Empresa Cliente Asignada
@@ -178,7 +178,7 @@ export const UserConfigModal: React.FC<UserModalProps> = ({
                         )}
 
                         {/* Centro de Costo Específico */}
-                        {formData.role_name === 'Cliente' && formData.empresa_cliente_id && (
+                        {(formData.role_name === 'Cliente' || formData.role_name === 'Supervisor HSE+') && formData.empresa_cliente_id && (
                             <div className="space-y-1.5 animate-in slide-in-from-top-2 duration-300">
                                 <label className="text-[11px] font-black text-brand-text-muted uppercase tracking-widest ml-1 flex items-center gap-2">
                                     <ShieldCheck className="w-3 h-3 text-brand-primary" /> Centro de Costo (Opcional)
@@ -203,7 +203,7 @@ export const UserConfigModal: React.FC<UserModalProps> = ({
                         )}
 
                         {/* Link de Acceso Público */}
-                        {formData.role_name === 'Cliente' && formData.access_token && (
+                        {(formData.role_name === 'Cliente' || formData.role_name === 'Supervisor HSE+') && formData.access_token && (
                             <div className="p-5 bg-emerald-50 rounded-3xl border border-emerald-100/50 space-y-3 animate-in zoom-in-95 duration-500">
                                 <label className="flex items-center gap-2 text-[10px] font-black text-emerald-600 uppercase tracking-widest ml-1">
                                     <Link className="w-3 h-3" /> Enlace de Acceso Externo (Propuesta A)
