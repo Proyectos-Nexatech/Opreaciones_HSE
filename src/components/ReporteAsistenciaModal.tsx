@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { X, Calendar, User, Users, Mail, Building2, MapPin, ClipboardList, Plus, Save, Search, Check } from 'lucide-react';
+import { X, Calendar, User, Users, Mail, Building2, MapPin, ClipboardList, Plus, Save, Search, Check, Loader2 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { supervisoresHSE } from '../data/supervisoresHSE';
-// import { allPersonal, centrosCosto, empresasCliente } from '../data/sharedData'; // Removed mock dependency
 import { supabase } from '../lib/supabaseClient';
+import { getPersonal, getSupervisores, getEmpresas, getCentrosCosto } from '../services/hseService';
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -47,6 +46,32 @@ export const ReporteAsistenciaModal: React.FC<ReporteAsistenciaModalProps> = ({
     // Multi-select state
     const [selectedPersons, setSelectedPersons] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Internal catalog state — loaded directly from Supabase
+    const [catPersonal, setCatPersonal] = useState<any[]>([]);
+    const [catSupervisores, setCatSupervisores] = useState<any[]>([]);
+    const [catEmpresas, setCatEmpresas] = useState<any[]>([]);
+    const [catCentros, setCatCentros] = useState<any[]>([]);
+    const [loadingCatalogs, setLoadingCatalogs] = useState(false);
+
+    // Fetch catalogs when modal opens
+    React.useEffect(() => {
+        if (!isOpen) return;
+        setLoadingCatalogs(true);
+        Promise.all([
+            getPersonal(),
+            getSupervisores(),
+            getEmpresas(),
+            getCentrosCosto(),
+        ]).then(([pers, sups, emps, cents]) => {
+            setCatPersonal(pers || []);
+            setCatSupervisores(sups || []);
+            setCatEmpresas(emps || []);
+            setCatCentros(cents || []);
+        }).catch(err => {
+            console.error('Error loading modal catalogs:', err);
+        }).finally(() => setLoadingCatalogs(false));
+    }, [isOpen]);
 
     // Fetch logged-in user email
     React.useEffect(() => {
@@ -158,20 +183,20 @@ export const ReporteAsistenciaModal: React.FC<ReporteAsistenciaModalProps> = ({
                             <select
                                 value={formData.supervisorId}
                                 onChange={(e) => setFormData({ ...formData, supervisorId: e.target.value })}
-                                className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary appearance-none"
+                                className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary appearance-none disabled:bg-gray-50"
+                                disabled={loadingCatalogs}
                             >
-                                <option value="">Seleccione una opción</option>
-                                {[
-                                    ...(supervisores.length > 0 ? supervisores : supervisoresHSE)
-                                        .filter(s => s.status?.toLowerCase() === 'activo')
-                                        .map((s: any) => ({ ...s, id: `s-${s.id}` })),
-                                ].filter((v, i, a) => a.findIndex(t => t.name === v.name) === i) // Unique by name
-                                 .map(p => (
-                                    <option key={p.id} value={p.name}>{p.name}</option>
+                                <option value="">{loadingCatalogs ? 'Cargando supervisores...' : 'Seleccione una opción'}</option>
+                                {catSupervisores.map((s: any) => (
+                                    <option key={s.id} value={s.id}>{s.name}</option>
                                 ))}
                             </select>
                             <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                                <Plus className="w-4 h-4 text-gray-400 rotate-45" />
+                                {loadingCatalogs ? (
+                                    <Loader2 className="w-4 h-4 text-brand-primary animate-spin" />
+                                ) : (
+                                    <Plus className="w-4 h-4 text-gray-400 rotate-45" />
+                                )}
                             </div>
                         </div>
                     </div>
@@ -225,15 +250,20 @@ export const ReporteAsistenciaModal: React.FC<ReporteAsistenciaModalProps> = ({
                             <select
                                 value={formData.empresa}
                                 onChange={(e) => setFormData({ ...formData, empresa: e.target.value })}
-                                className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary appearance-none"
+                                className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary appearance-none disabled:bg-gray-50"
+                                disabled={loadingCatalogs}
                             >
-                                <option value="">Seleccione una opción</option>
-                                {empresas.map(e => (
+                                <option value="">{loadingCatalogs ? 'Cargando empresas...' : 'Seleccione una opción'}</option>
+                                {catEmpresas.map(e => (
                                     <option key={e.id} value={e.id}>{e.name}</option>
                                 ))}
                             </select>
                             <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                                <Plus className="w-4 h-4 text-gray-400 rotate-45" />
+                                {loadingCatalogs ? (
+                                    <Loader2 className="w-4 h-4 text-brand-primary animate-spin" />
+                                ) : (
+                                    <Plus className="w-4 h-4 text-gray-400 rotate-45" />
+                                )}
                             </div>
                         </div>
                     </div>
@@ -246,15 +276,20 @@ export const ReporteAsistenciaModal: React.FC<ReporteAsistenciaModalProps> = ({
                             <select
                                 value={formData.centro}
                                 onChange={(e) => setFormData({ ...formData, centro: e.target.value })}
-                                className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary appearance-none"
+                                className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary appearance-none disabled:bg-gray-50"
+                                disabled={loadingCatalogs}
                             >
-                                <option value="">Seleccione una opción</option>
-                                {centros.map(c => (
+                                <option value="">{loadingCatalogs ? 'Cargando centros...' : 'Seleccione una opción'}</option>
+                                {catCentros.map(c => (
                                     <option key={c.id} value={c.id}>{c.name}</option>
                                 ))}
                             </select>
                             <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                                <Plus className="w-4 h-4 text-gray-400 rotate-45" />
+                                {loadingCatalogs ? (
+                                    <Loader2 className="w-4 h-4 text-brand-primary animate-spin" />
+                                ) : (
+                                    <Plus className="w-4 h-4 text-gray-400 rotate-45" />
+                                )}
                             </div>
                         </div>
                     </div>
@@ -289,56 +324,56 @@ export const ReporteAsistenciaModal: React.FC<ReporteAsistenciaModalProps> = ({
                                 />
                             </div>
                             <div className="max-h-60 overflow-y-auto p-2 space-y-0.5 custom-scrollbar">
-                                {personal.filter(p => {
-                                    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                        p.role.toLowerCase().includes(searchTerm.toLowerCase());
-                                    const matchesCentro = !formData.centro || p.centro_costo_id === formData.centro;
-                                    return matchesSearch && matchesCentro;
-                                }).map(p => (
-                                    <label key={p.id} className="flex items-center gap-3 p-2.5 hover:bg-brand-primary/5 rounded-lg cursor-pointer transition-all group select-none">
-                                        <div className={cn(
-                                            "w-5 h-5 rounded-md border flex items-center justify-center transition-all shadow-sm",
-                                            selectedPersons.includes(p.id)
-                                                ? "bg-brand-primary border-brand-primary text-white scale-100"
-                                                : "border-gray-200 bg-white text-transparent scale-95 group-hover:border-brand-primary/50 group-hover:scale-100"
-                                        )}>
-                                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                {(() => {
+                                    const term = searchTerm.toLowerCase();
+                                    const filtered = catPersonal.filter(p => {
+                                        const matchesSearch = (p.name || '').toLowerCase().includes(term) ||
+                                            (p.role || p.cargo || '').toLowerCase().includes(term);
+                                        const matchesCentro = !formData.centro || p.centro_costo_id === formData.centro;
+                                        return matchesSearch && matchesCentro;
+                                    });
+                                    if (filtered.length === 0) return (
+                                        <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                                            <User className="w-8 h-8 opacity-20 mb-2" />
+                                            <p className="text-xs font-medium">No se encontraron resultados</p>
                                         </div>
-                                        <input
-                                            type="checkbox"
-                                            className="hidden"
-                                            checked={selectedPersons.includes(p.id)}
-                                            onChange={() => {
-                                                if (selectedPersons.includes(p.id)) {
-                                                    setSelectedPersons(prev => prev.filter(id => id !== p.id));
-                                                } else {
-                                                    setSelectedPersons(prev => [...prev, p.id]);
-                                                }
-                                            }}
-                                        />
-                                        <div className="flex flex-col">
-                                            <span className={cn(
-                                                "text-sm font-semibold transition-colors",
-                                                selectedPersons.includes(p.id) ? "text-brand-primary" : "text-gray-700"
+                                    );
+                                    return filtered.map(p => (
+                                        <label key={p.id} className="flex items-center gap-3 p-2.5 hover:bg-brand-primary/5 rounded-lg cursor-pointer transition-all group select-none">
+                                            <div className={cn(
+                                                "w-5 h-5 rounded-md border flex items-center justify-center transition-all shadow-sm",
+                                                selectedPersons.includes(p.id)
+                                                    ? "bg-brand-primary border-brand-primary text-white scale-100"
+                                                    : "border-gray-200 bg-white text-transparent scale-95 group-hover:border-brand-primary/50 group-hover:scale-100"
                                             )}>
-                                                {p.name}
-                                            </span>
-                                            <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wide">
-                                                {p.role}
-                                            </span>
-                                        </div>
-                                    </label>
-                                ))}
-                                {personal.filter(p => {
-                                    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
-                                    const matchesCentro = !formData.centro || p.centro_costo_id === formData.centro;
-                                    return matchesSearch && matchesCentro;
-                                }).length === 0 && (
-                                    <div className="flex flex-col items-center justify-center py-8 text-gray-400">
-                                        <User className="w-8 h-8 opacity-20 mb-2" />
-                                        <p className="text-xs font-medium">No se encontraron resultados</p>
-                                    </div>
-                                )}
+                                                <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                            </div>
+                                            <input
+                                                type="checkbox"
+                                                className="hidden"
+                                                checked={selectedPersons.includes(p.id)}
+                                                onChange={() => {
+                                                    if (selectedPersons.includes(p.id)) {
+                                                        setSelectedPersons(prev => prev.filter(id => id !== p.id));
+                                                    } else {
+                                                        setSelectedPersons(prev => [...prev, p.id]);
+                                                    }
+                                                }}
+                                            />
+                                            <div className="flex flex-col">
+                                                <span className={cn(
+                                                    "text-sm font-semibold transition-colors",
+                                                    selectedPersons.includes(p.id) ? "text-brand-primary" : "text-gray-700"
+                                                )}>
+                                                    {p.name}
+                                                </span>
+                                                <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wide">
+                                                    {p.role || p.cargo || ''}
+                                                </span>
+                                            </div>
+                                        </label>
+                                    ));
+                                })()}
                             </div>
                         </div>
                         <div className="flex justify-between items-center px-1">
