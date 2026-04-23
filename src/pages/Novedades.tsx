@@ -194,16 +194,18 @@ export const Novedades: React.FC = () => {
                                             <span className="text-[10px] font-bold text-brand-text-muted uppercase tracking-[0.1em] border-l border-gray-200 pl-3">{item.companyName}</span>
                                             <span className="text-[10px] font-bold text-brand-text-muted uppercase tracking-[0.1em] border-l border-gray-200 pl-3 truncate max-w-[150px]">{item.costCenterName}</span>
                                         </div>
-                                        <div className="flex items-center gap-1 opacity-10 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex items-center gap-1">
                                             <button
                                                 onClick={() => handleEdit(item)}
-                                                className="p-2.5 text-brand-text-muted hover:text-brand-primary hover:bg-white rounded-xl transition-all border border-transparent hover:border-gray-100 shadow-sm"
+                                                className="p-2.5 text-brand-text-muted hover:text-brand-primary bg-white/80 hover:bg-brand-primary/10 rounded-xl transition-all border border-gray-100 shadow-sm"
+                                                title="Editar novedad"
                                             >
                                                 <Edit3 className="w-4 h-4" />
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(item.id)}
-                                                className="p-2.5 text-brand-text-muted hover:text-brand-error hover:bg-white rounded-xl transition-all border border-transparent hover:border-gray-100 shadow-sm"
+                                                className="p-2.5 text-brand-text-muted hover:text-brand-error bg-white/80 hover:bg-red-50 rounded-xl transition-all border border-gray-100 shadow-sm"
+                                                title="Eliminar novedad"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>

@@ -191,7 +191,7 @@ export const EventosAccidentes: React.FC = () => {
                                 <th className="px-6 py-4 text-[11px] font-bold text-brand-text-muted uppercase tracking-wider">Detalle del Evento</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-brand-text-muted uppercase tracking-wider">Personal Involucrado</th>
                                 <th className="px-6 py-4 text-[11px] font-bold text-brand-text-muted uppercase tracking-wider">Indicadores</th>
-                                <th className="px-6 py-4 text-right">Acciones</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-brand-text-muted uppercase tracking-wider text-right">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -237,16 +237,18 @@ export const EventosAccidentes: React.FC = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="flex justify-end gap-2">
                                                 <button
                                                     onClick={() => handleEdit(report)}
-                                                    className="p-2 text-brand-text-muted hover:text-brand-primary hover:bg-white rounded-lg transition-all shadow-sm border border-transparent hover:border-gray-100"
+                                                    className="p-2 text-brand-text-muted hover:text-brand-primary bg-gray-50 hover:bg-brand-primary/10 rounded-xl transition-all shadow-sm border border-gray-100"
+                                                    title="Editar reporte"
                                                 >
                                                     <Edit3 className="w-4 h-4" />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(report.id)}
-                                                    className="p-2 text-brand-text-muted hover:text-brand-error hover:bg-white rounded-lg transition-all shadow-sm border border-transparent hover:border-gray-100"
+                                                    className="p-2 text-brand-text-muted hover:text-brand-error bg-gray-50 hover:bg-red-50 rounded-xl transition-all shadow-sm border border-gray-100"
+                                                    title="Eliminar reporte"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>

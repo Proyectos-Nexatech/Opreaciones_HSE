@@ -232,16 +232,18 @@ export const Ausentismo: React.FC = () => {
                                         <p className="text-[10px] font-black text-brand-text-muted uppercase tracking-widest mb-1">Fecha Reporte</p>
                                         <p className="text-xs font-bold text-brand-text">{report.reportDate}</p>
                                     </div>
-                                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="flex items-center gap-1">
                                         <button
                                             onClick={() => handleEdit(report)}
-                                            className="p-2.5 text-brand-text-muted hover:text-brand-primary hover:bg-white rounded-xl transition-all border border-transparent hover:border-gray-100 shadow-sm"
+                                            className="p-2.5 text-brand-text-muted hover:text-brand-primary bg-white/80 hover:bg-brand-primary/10 rounded-xl transition-all border border-gray-100 shadow-sm"
+                                            title="Editar registro"
                                         >
                                             <Edit3 className="w-4 h-4" />
                                         </button>
                                         <button
                                             onClick={() => handleDelete(report.id)}
-                                            className="p-2.5 text-brand-text-muted hover:text-brand-error hover:bg-white rounded-xl transition-all border border-transparent hover:border-gray-100 shadow-sm"
+                                            className="p-2.5 text-brand-text-muted hover:text-brand-error bg-white/80 hover:bg-red-50 rounded-xl transition-all border border-gray-100 shadow-sm"
+                                            title="Eliminar registro"
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </button>
