@@ -118,7 +118,7 @@ export const Sidebar: React.FC = () => {
                                             >
                                                 <div className="flex items-center gap-4">
                                                     <item.icon className="w-4 h-4 md:hidden flex-shrink-0" />
-                                                    <span className="font-semibold text-[14px] tracking-tight leading-tight hidden md:block flex-1">{item.name}</span>
+                                                    <span className="font-semibold text-[14px] tracking-tight leading-tight hidden md:block">{item.name}</span>
                                                 </div>
                                                 {item.badge && (
                                                     <span className="bg-white text-brand-primary text-[9px] font-black px-1.5 py-0.5 rounded-md shadow-sm ml-2 hidden md:block">
