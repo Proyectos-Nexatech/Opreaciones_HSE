@@ -333,7 +333,7 @@ export const Configuracion: React.FC = () => {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-5 text-right">
-                                                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="flex items-center justify-end gap-2">
                                                     {isAdmin && (
                                                         <>
                                                             <button
@@ -386,7 +386,7 @@ export const Configuracion: React.FC = () => {
                                         <ShieldCheck className="w-6 h-6" />
                                     </div>
                                     {isAdmin && (
-                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex items-center gap-1">
                                             <button
                                                 onClick={() => { setEditingRole(role); setIsRoleModalOpen(true); }}
                                                 className="p-2 text-brand-text-muted hover:text-brand-primary transition-colors bg-gray-50 rounded-lg shadow-sm"
