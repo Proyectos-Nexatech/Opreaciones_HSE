@@ -785,6 +785,7 @@ export const ReportesPermisos: React.FC = () => {
                                                     <option>Trabajo en Caliente</option>
                                                     <option>Trabajo en Alturas</option>
                                                     <option>Espacios Confinados</option>
+                                                    <option>Permiso Unificado</option>
                                                 </select>
                                                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-text-muted" />
                                             </div>
