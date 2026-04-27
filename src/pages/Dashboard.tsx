@@ -14,6 +14,7 @@ import { getPermisos, getAusentismo, getPersonal, getEventos, getNovedades } fro
 import { FileText } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { HSEPyramid } from '../components/HSEPyramid';
+import { useUserFilter } from '../hooks/useUserFilter';
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -58,6 +59,7 @@ const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'O
 const COLORS = ['#126bf0', '#0ea5e9', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#ec4899', '#14b8a6'];
 
 export const Dashboard: React.FC = () => {
+    const { filterUserId, isAdmin } = useUserFilter();
     const [permisosData, setPermisosData] = useState<any[]>([]);
     const [eventosData, setEventosData] = useState<any[]>([]);
     const [novedadesData, setNovedadesData] = useState<any[]>([]);
@@ -77,13 +79,13 @@ export const Dashboard: React.FC = () => {
     useEffect(() => {
         const loadDashboardData = async () => {
             try {
-                const permisos = await getPermisos();
+                const permisos = await getPermisos(filterUserId ? { userId: filterUserId } : undefined);
                 setPermisosData(permisos || []);
                 setStats({ total: permisos?.length || 0 });
 
                 // Calcular Tasa de Ausentismo
                 const [ausencias, personal] = await Promise.all([
-                    getAusentismo(),
+                    getAusentismo(filterUserId ? { userId: filterUserId } : undefined),
                     getPersonal()
                 ]);
 
@@ -102,8 +104,8 @@ export const Dashboard: React.FC = () => {
 
                 // Cargar datos de HSE para la pirámide
                 const [eventos, novedades] = await Promise.all([
-                    getEventos(),
-                    getNovedades()
+                    getEventos(filterUserId ? { userId: filterUserId } : undefined),
+                    getNovedades(filterUserId ? { userId: filterUserId } : undefined)
                 ]);
                 setEventosData(eventos || []);
                 setNovedadesData(novedades || []);
@@ -112,7 +114,7 @@ export const Dashboard: React.FC = () => {
             }
         };
         loadDashboardData();
-    }, []);
+    }, [filterUserId]);
 
     const [selectedEmpresa, setSelectedEmpresa] = useState<string>('All');
     const [selectedCentro, setSelectedCentro] = useState<string>('All');
@@ -257,7 +259,8 @@ export const Dashboard: React.FC = () => {
                 </div>
             </div>
 
-            {/* Filtros Dinámicos */}
+            {/* Filtros Dinámicos — Solo visibles para administradores */}
+            {isAdmin && (
             <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col md:flex-row gap-4 items-end">
                 <div className="flex-1 w-full">
                     <label className="block text-[11px] font-black text-brand-text-muted uppercase tracking-widest mb-2 px-1">Empresa Cliente</label>
@@ -293,6 +296,7 @@ export const Dashboard: React.FC = () => {
                     </select>
                 </div>
             </div>
+            )}
 
             {/* Tarjetas de Estadísticas */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

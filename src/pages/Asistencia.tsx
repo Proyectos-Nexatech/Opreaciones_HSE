@@ -4,6 +4,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { ReporteAsistenciaModal } from '../components/ReporteAsistenciaModal';
 import { getAsistencia, createAsistencia, updateAsistencia, deleteAsistencia as deleteAsistenciaService, getPersonal, getSupervisores, getCentrosCosto, getEmpresas } from '../services/hseService';
+import { useUserFilter } from '../hooks/useUserFilter';
 
 function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
 
@@ -112,6 +113,7 @@ function DayDetail({ date, rows, onClose, onEdit, onDelete }: {
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 export const Asistencia: React.FC = () => {
+    const { filterUserId, userId, isAdmin } = useUserFilter();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState<any>(null);
     const [records, setRecords] = useState<any[]>([]);
@@ -128,7 +130,8 @@ export const Asistencia: React.FC = () => {
         setLoading(true);
         try {
             const [asistenciaData, personalData, supervisoresData, centrosData, empresasData] = await Promise.all([
-                getAsistencia(), getPersonal(), getSupervisores(), getCentrosCosto(), getEmpresas()
+                getAsistencia(filterUserId ? { userId: filterUserId } : undefined),
+                getPersonal(), getSupervisores(), getCentrosCosto(), getEmpresas()
             ]);
             setPersonal(personalData || []);
             setSupervisores(supervisoresData || []);
@@ -159,7 +162,7 @@ export const Asistencia: React.FC = () => {
         }
     };
 
-    useEffect(() => { loadData(); }, []);
+    useEffect(() => { loadData(); }, [filterUserId]);
 
     // ── derived ────────────────────────────────────────────────────────────────
 
@@ -211,7 +214,7 @@ export const Asistencia: React.FC = () => {
                         centro_costo_id: data.centro || null,
                         orden_servicio: data.orden || null,
                         fecha: data.date,
-                        created_by: data.supervisorId || null,
+                        created_by: data.supervisorId || userId || null,
                     });
                 }));
             }
@@ -307,7 +310,8 @@ export const Asistencia: React.FC = () => {
                                 onChange={e => setSearchDate(e.target.value)}
                                 className="w-full bg-white border border-gray-200 rounded-xl py-2.5 pl-10 pr-4 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/50 transition-all shadow-sm" />
                         </div>
-                        {/* Filter by supervisor */}
+                        {/* Filter by supervisor — Solo para administradores */}
+                        {isAdmin && (
                         <div className="relative min-w-[220px]">
                             <UserCheck className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-text-muted pointer-events-none" />
                             <select value={filterSupervisor} onChange={e => setFilterSupervisor(e.target.value)}
@@ -318,6 +322,7 @@ export const Asistencia: React.FC = () => {
                                 ))}
                             </select>
                         </div>
+                        )}
                     </div>
 
                     {/* List */}

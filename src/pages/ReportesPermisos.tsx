@@ -24,12 +24,14 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getPermisos, getSupervisores, getEmpresas, getCentrosCosto, getPersonal, createPermiso, updatePermiso, deletePermiso, createPermisosBulk } from '../services/hseService';
 import { supabase } from '../lib/supabaseClient';
+import { useUserFilter } from '../hooks/useUserFilter';
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
 export const ReportesPermisos: React.FC = () => {
+    const { filterUserId, userId, isAdmin } = useUserFilter();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [selectedSupervisor, setSelectedSupervisor] = useState<string | null>(null);
@@ -65,7 +67,7 @@ export const ReportesPermisos: React.FC = () => {
             setLoading(true);
             console.log('Fetching all permit related data...');
             const results = await Promise.allSettled([
-                getPermisos(),
+                getPermisos(filterUserId ? { userId: filterUserId } : undefined),
                 getSupervisores(),
                 getEmpresas(),
                 getCentrosCosto(),
@@ -121,7 +123,7 @@ export const ReportesPermisos: React.FC = () => {
         }
     };
 
-    useEffect(() => { loadData(); }, []);
+    useEffect(() => { loadData(); }, [filterUserId]);
 
     const filteredReports = selectedSupervisor
         ? reports.filter((r: any) => r.supervisor === selectedSupervisor)
@@ -184,6 +186,8 @@ export const ReportesPermisos: React.FC = () => {
             personal_involucrado: selectedPersonal.length > 0 ? selectedPersonal[0] : null,
             propietario_email: (fd.get('propietario') as string) || null,
             documento_url: documentoUrl || null,
+            // Guardar el ID del usuario que crea el registro
+            ...(!editingReport && userId ? { created_by: userId } : {}),
         };
         try {
             setSaving(true);
@@ -465,7 +469,8 @@ export const ReportesPermisos: React.FC = () => {
             </div>
 
             <div className="flex flex-col lg:flex-row gap-8 flex-1 min-h-0">
-                {/* Supervisor Sidebar */}
+                {/* Supervisor Sidebar — Solo para administradores */}
+                {isAdmin && (
                 <aside className="lg:w-72 flex flex-col gap-6 shrink-0">
                     <div className="bg-white p-6 rounded-3xl border border-gray-100 flex flex-col shadow-sm">
                         <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-50">
@@ -515,6 +520,7 @@ export const ReportesPermisos: React.FC = () => {
                         </div>
                     </div>
                 </aside>
+                )}
 
                 {/* Main Content - Table */}
                 <div className="flex-1 min-w-0">

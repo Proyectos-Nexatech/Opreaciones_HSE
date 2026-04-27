@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { ClipboardList, Filter, Search, Edit3, Trash2, Plus, Clock, Loader2 } from 'lucide-react';
 import { ReporteNovedadesModal } from '../components/ReporteNovedadesModal';
 import { getNovedades, createNovedad, updateNovedad, deleteNovedad as deleteNovedadService, getPersonal, getSupervisores, getCentrosCosto, getEmpresas } from '../services/hseService';
+import { useUserFilter } from '../hooks/useUserFilter';
 
 export const Novedades: React.FC = () => {
+    const { filterUserId, userId } = useUserFilter();
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingNovedad, setEditingNovedad] = useState<any>(null);
@@ -17,7 +19,7 @@ export const Novedades: React.FC = () => {
     const loadData = async () => {
         try {
             const [novedadesData, personalData, supervisoresData, centrosData, empresasData] = await Promise.all([
-                getNovedades(),
+                getNovedades(filterUserId ? { userId: filterUserId } : undefined),
                 getPersonal(),
                 getSupervisores(),
                 getCentrosCosto(),
@@ -59,7 +61,7 @@ export const Novedades: React.FC = () => {
         }
     };
 
-    useEffect(() => { loadData(); }, []);
+    useEffect(() => { loadData(); }, [filterUserId]);
 
     const filtered = novedades.filter(n =>
         n.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -82,6 +84,8 @@ export const Novedades: React.FC = () => {
                 orden_servicio: data.serviceOrder,
                 empresa_id: data.company || null,
                 centro_costo_id: data.costCenter || null,
+                // Guardar el ID del usuario que crea el registro
+                ...(!editingNovedad && userId ? { created_by: userId } : {}),
             };
 
             if (editingNovedad) {

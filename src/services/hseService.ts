@@ -176,7 +176,7 @@ export async function deleteCentroCosto(id: string) {
 // REPORTE DE PERMISOS
 // ============================================================
 
-export async function getPermisos(filters?: { empresaId?: string; centroCostoId?: string }) {
+export async function getPermisos(filters?: { empresaId?: string; centroCostoId?: string; userId?: string }) {
     let query = supabase
         .from('reporte_permisos')
         .select(`
@@ -187,15 +187,15 @@ export async function getPermisos(filters?: { empresaId?: string; centroCostoId?
         `)
         .order('created_at', { ascending: false });
 
-    // Si no hay sesión (acceso por token), el RLS de Supabase debe estar 
-    // configurado para permitir lectura pública basada en parámetros o vistas seguras.
-    // Para simplificar, asumimos que los filtros aplicados aquí son validados primero por el token.
-
     if (filters?.empresaId) {
         query = query.eq('empresa_id', filters.empresaId);
     }
     if (filters?.centroCostoId) {
         query = query.eq('centro_costo_id', filters.centroCostoId);
+    }
+    // Filtrar por usuario creador (no-admin: solo ve sus propios registros)
+    if (filters?.userId) {
+        query = query.eq('created_by', filters.userId);
     }
 
     const { data, error } = await query;
@@ -245,14 +245,18 @@ export async function deletePermiso(id: string) {
 // REPORTE DE ASISTENCIA
 // ============================================================
 
-export async function getAsistencia(fecha?: string) {
+export async function getAsistencia(filters?: { fecha?: string; userId?: string }) {
     let query = supabase
         .from('reporte_asistencia')
         .select('*')
         .order('created_at', { ascending: false });
 
-    if (fecha) {
-        query = query.eq('fecha', fecha);
+    if (filters?.fecha) {
+        query = query.eq('fecha', filters.fecha);
+    }
+    // Filtrar por usuario creador (no-admin: solo ve sus propios registros)
+    if (filters?.userId) {
+        query = query.eq('created_by', filters.userId);
     }
 
     const { data, error } = await query;
@@ -293,7 +297,7 @@ export async function deleteAsistencia(id: string) {
 // REPORTE DE EVENTOS
 // ============================================================
 
-export async function getEventos(filters?: { empresaId?: string; centroCostoId?: string }) {
+export async function getEventos(filters?: { empresaId?: string; centroCostoId?: string; userId?: string }) {
     let query = supabase
         .from('reporte_eventos')
         .select(`
@@ -309,6 +313,10 @@ export async function getEventos(filters?: { empresaId?: string; centroCostoId?:
     }
     if (filters?.centroCostoId) {
         query = query.eq('centro_costo_id', filters.centroCostoId);
+    }
+    // Filtrar por usuario creador (no-admin: solo ve sus propios registros)
+    if (filters?.userId) {
+        query = query.eq('created_by', filters.userId);
     }
 
     const { data, error } = await query;
@@ -349,7 +357,7 @@ export async function deleteEvento(id: string) {
 // REPORTE DE NOVEDADES
 // ============================================================
 
-export async function getNovedades(filters?: { empresaId?: string; centroCostoId?: string }) {
+export async function getNovedades(filters?: { empresaId?: string; centroCostoId?: string; userId?: string }) {
     let query = supabase
         .from('reporte_novedades')
         .select(`
@@ -359,12 +367,15 @@ export async function getNovedades(filters?: { empresaId?: string; centroCostoId
         `)
         .order('created_at', { ascending: false });
 
-    // Intentamos filtrar por empresa_id o empresa_cliente_id según lo que exista
     if (filters?.empresaId) {
         query = query.eq('empresa_id', filters.empresaId);
     }
     if (filters?.centroCostoId) {
         query = query.eq('centro_costo_id', filters.centroCostoId);
+    }
+    // Filtrar por usuario creador (no-admin: solo ve sus propios registros)
+    if (filters?.userId) {
+        query = query.eq('created_by', filters.userId);
     }
 
     const { data, error } = await query;
@@ -405,8 +416,8 @@ export async function deleteNovedad(id: string) {
 // REPORTE DE AUSENTISMO
 // ============================================================
 
-export async function getAusentismo() {
-    const { data, error } = await supabase
+export async function getAusentismo(filters?: { userId?: string }) {
+    let query = supabase
         .from('reporte_ausentismo')
         .select(`
             *,
@@ -414,6 +425,13 @@ export async function getAusentismo() {
             centro:centros_costo(id, name, code)
         `)
         .order('created_at', { ascending: false });
+
+    // Filtrar por usuario creador (no-admin: solo ve sus propios registros)
+    if (filters?.userId) {
+        query = query.eq('created_by', filters.userId);
+    }
+
+    const { data, error } = await query;
     if (error) throw error;
     return data;
 }

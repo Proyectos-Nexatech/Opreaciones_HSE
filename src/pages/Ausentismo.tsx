@@ -4,12 +4,14 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { ReporteAusentismoModal } from '../components/ReporteAusentismoModal';
 import { getAusentismo, createAusentismo, updateAusentismo, deleteAusentismo as deleteAusentismoService, getPersonal, getSupervisores, getCentrosCosto, getEmpresas } from '../services/hseService';
+import { useUserFilter } from '../hooks/useUserFilter';
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
 export const Ausentismo: React.FC = () => {
+    const { filterUserId, userId } = useUserFilter();
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingReport, setEditingReport] = useState<any>(null);
@@ -23,7 +25,7 @@ export const Ausentismo: React.FC = () => {
     const loadData = async () => {
         try {
             const [ausentismoData, personalData, supervisoresData, centrosData, empresasData] = await Promise.all([
-                getAusentismo(),
+                getAusentismo(filterUserId ? { userId: filterUserId } : undefined),
                 getPersonal(),
                 getSupervisores(),
                 getCentrosCosto(),
@@ -61,7 +63,7 @@ export const Ausentismo: React.FC = () => {
         }
     };
 
-    useEffect(() => { loadData(); }, []);
+    useEffect(() => { loadData(); }, [filterUserId]);
 
     const filtered = reports.filter(r =>
         r.absentPerson.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -88,6 +90,8 @@ export const Ausentismo: React.FC = () => {
                 email: data.email,
                 empresa_id: data.company || null,
                 centro_costo_id: data.costCenter || null,
+                // Guardar el ID del usuario que crea el registro
+                ...(!editingReport && userId ? { created_by: userId } : {}),
             };
             if (editingReport) {
                 await updateAusentismo(editingReport.id, payload);

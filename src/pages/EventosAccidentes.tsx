@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { ShieldAlert, Search, Plus, Trash2, Edit3, Loader2 } from 'lucide-react';
 import { ReporteEventoModal } from '../components/ReporteEventoModal';
 import { getEventos, deleteEvento, createEvento, updateEvento, getPersonal, getSupervisores, getCentrosCosto, getEmpresas } from '../services/hseService';
+import { useUserFilter } from '../hooks/useUserFilter';
 
 
 export const EventosAccidentes: React.FC = () => {
+    const { filterUserId, userId } = useUserFilter();
     const [reports, setReports] = useState<any[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingReport, setEditingReport] = useState<any>(null);
@@ -18,7 +20,7 @@ export const EventosAccidentes: React.FC = () => {
     const loadData = async () => {
         try {
             const [eventosData, personalData, supervisoresData, centrosData, empresasData] = await Promise.all([
-                getEventos(),
+                getEventos(filterUserId ? { userId: filterUserId } : undefined),
                 getPersonal(),
                 getSupervisores(),
                 getCentrosCosto(),
@@ -62,7 +64,7 @@ export const EventosAccidentes: React.FC = () => {
         }
     };
 
-    useEffect(() => { loadData(); }, []);
+    useEffect(() => { loadData(); }, [filterUserId]);
 
     const handleSave = async (reportData: any) => {
         try {
@@ -83,7 +85,8 @@ export const EventosAccidentes: React.FC = () => {
                 persona_involucrada: reportData.personaInvolucradaId || null,
                 acto_condicion: reportData.actoCondicion || null,
                 supervisor_id: reportData.supervisorId || null,
-                // Any other fields that might be missing
+                // Guardar el ID del usuario que crea el registro
+                ...(!editingReport && userId ? { created_by: userId } : {}),
             };
 
             if (editingReport) {
