@@ -42,14 +42,19 @@ export async function deleteSupervisorHSE(id: string) {
     if (error) throw error;
 }
 
-export async function getPersonal() {
-    const { data, error } = await supabase
+export async function getPersonal(filters?: { empresaId?: string; centroCostoId?: string }) {
+    let query = supabase
         .from('personal_hse')
         .select(`
             *,
             centro:centro_costo_id(id, name, code)
         `)
         .order('name');
+
+    if (filters?.empresaId) query = query.eq('empresa_id', filters.empresaId);
+    if (filters?.centroCostoId) query = query.eq('centro_costo_id', filters.centroCostoId);
+
+    const { data, error } = await query;
     if (error) throw error;
     return data;
 }
@@ -416,7 +421,7 @@ export async function deleteNovedad(id: string) {
 // REPORTE DE AUSENTISMO
 // ============================================================
 
-export async function getAusentismo(filters?: { userId?: string }) {
+export async function getAusentismo(filters?: { empresaId?: string; centroCostoId?: string; userId?: string }) {
     let query = supabase
         .from('reporte_ausentismo')
         .select(`
@@ -426,6 +431,9 @@ export async function getAusentismo(filters?: { userId?: string }) {
         `)
         .order('created_at', { ascending: false });
 
+    if (filters?.empresaId) query = query.eq('empresa_id', filters.empresaId);
+    if (filters?.centroCostoId) query = query.eq('centro_costo_id', filters.centroCostoId);
+    
     // Filtrar por usuario creador (no-admin: solo ve sus propios registros)
     if (filters?.userId) {
         query = query.eq('created_by', filters.userId);

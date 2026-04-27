@@ -81,12 +81,12 @@ export const DashboardPublico: React.FC = () => {
             const profileCentroId = profile.centro_costo_id;
 
             const [permisos, eventos, ausencias, personal, centros, novedades] = await Promise.all([
-                getPermisos({ empresaId, centroCostoId: profileCentroId || undefined }).catch(e => { console.error('P:', e); return []; }),
-                getEventos({ empresaId, centroCostoId: profileCentroId || undefined }).catch(e => { console.error('E:', e); return []; }),
-                getAusentismo().catch(e => { console.error('A:', e); return []; }),
-                getPersonal().catch(e => { console.error('Per:', e); return []; }),
+                getPermisos({ empresaId }).catch(e => { console.error('P:', e); return []; }),
+                getEventos({ empresaId }).catch(e => { console.error('E:', e); return []; }),
+                getAusentismo({ empresaId }).catch(e => { console.error('A:', e); return []; }),
+                getPersonal({ empresaId }).catch(e => { console.error('Per:', e); return []; }),
                 getCentrosCostoByEmpresa(empresaId).catch(e => { console.error('C:', e); return []; }),
-                getNovedades({ empresaId, centroCostoId: profileCentroId || undefined }).catch(e => { console.error('N:', e); return []; })
+                getNovedades({ empresaId }).catch(e => { console.error('N:', e); return []; })
             ]);
 
             setPermisosData(permisos || []);
@@ -97,7 +97,10 @@ export const DashboardPublico: React.FC = () => {
             
             // Si tiene un centro fijo, lo seleccionamos
             if (profileCentroId) {
+                // Pre-seleccionar el centro si el perfil tiene uno, pero permitir cambiar a 'All'
                 setSelectedCentroId(profileCentroId);
+            } else {
+                setSelectedCentroId('All');
             }
 
             // Calcular tasa de ausentismo
@@ -221,8 +224,6 @@ export const DashboardPublico: React.FC = () => {
             </header>
 
             <main className="flex-1 p-8 max-w-7xl mx-auto w-full space-y-8 animate-in fade-in duration-700">
-                {/* Ocultar selector si hay un centro fijo asignado */}
-                {!clientProfile?.centro_costo_id && (
                     <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm flex flex-col md:flex-row gap-6 items-center">
                         <div className="flex items-center gap-3 flex-shrink-0">
                             <div className="w-10 h-10 bg-brand-primary/10 rounded-2xl flex items-center justify-center">
@@ -234,17 +235,18 @@ export const DashboardPublico: React.FC = () => {
                             </div>
                         </div>
                         <div className="flex-1 w-full">
-                            <select
-                                value={selectedCentroId}
-                                onChange={(e) => setSelectedCentroId(e.target.value)}
-                                className="w-full bg-slate-50 border-transparent rounded-2xl py-3.5 px-6 font-bold text-brand-text focus:bg-white focus:ring-4 focus:ring-brand-primary/5 outline-none transition-all cursor-pointer"
-                            >
-                                <option value="All">Todos los centros disponibles</option>
-                                {centrosCosto.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                            </select>
+                                    <select
+                                        value={selectedCentroId}
+                                        onChange={(e) => setSelectedCentroId(e.target.value)}
+                                        className="w-full bg-blue-50 border border-brand-primary/20 rounded-2xl px-5 py-3.5 text-sm font-bold text-brand-text focus:outline-none focus:ring-4 focus:ring-brand-primary/10 transition-all shadow-inner appearance-none cursor-pointer"
+                                    >
+                                        <option value="All">Todos los centros</option>
+                                        {centrosData.map(centro => (
+                                            <option key={centro.id} value={centro.id}>{centro.name}</option>
+                                        ))}
+                                    </select>
                         </div>
                     </div>
-                )}
 
                 {clientProfile?.centro_costo_id && (
                     <div className="bg-brand-primary/5 p-4 rounded-2xl border border-brand-primary/10 flex items-center gap-3">
