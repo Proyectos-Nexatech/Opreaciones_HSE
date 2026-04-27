@@ -74,8 +74,8 @@ export const UserConfigModal: React.FC<UserModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-text/40 backdrop-blur-md animate-in fade-in duration-300">
-            <div className="bg-white rounded-[40px] w-full max-w-xl shadow-2xl border border-white/20 animate-in zoom-in-95 duration-300 overflow-hidden flex flex-col">
-                <div className="bg-brand-primary p-8 text-white flex justify-between items-center relative overflow-hidden">
+            <div className="bg-white rounded-[40px] w-full max-w-xl shadow-2xl border border-white/20 animate-in zoom-in-95 duration-300 overflow-hidden flex flex-col max-h-[95vh] md:max-h-[90vh]">
+                <div className="bg-brand-primary p-8 text-white flex justify-between items-center relative overflow-hidden shrink-0">
                     <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
                     <div className="relative z-10 flex items-center gap-4">
                         <div className="w-12 h-12 bg-white/20 rounded-2xl backdrop-blur-md flex items-center justify-center shadow-xl border border-white/10">
@@ -91,7 +91,7 @@ export const UserConfigModal: React.FC<UserModalProps> = ({
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                <form onSubmit={handleSubmit} className="p-8 space-y-6 flex-1 overflow-y-auto">
                     <div className="space-y-4">
                         <div className="space-y-1.5">
                             <label className="flex items-center gap-2 text-[10px] font-black text-brand-text-muted uppercase tracking-widest ml-1">
