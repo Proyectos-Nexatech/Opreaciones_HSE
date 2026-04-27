@@ -231,7 +231,7 @@ export const ReporteEventoModal: React.FC<ReporteEventoModalProps> = ({
                     </div>
 
                     {/* Contadores */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <div className="space-y-2">
                             <label className="text-[13px] font-bold text-gray-500 ml-1">Numero de Incidentes</label>
                             <input
@@ -249,6 +249,18 @@ export const ReporteEventoModal: React.FC<ReporteEventoModalProps> = ({
                                 onChange={(e) => setFormData({ ...formData, numAuxilios: parseInt(e.target.value) || 0 })}
                                 className="w-full bg-white border border-gray-200 rounded-xl py-3 px-4 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
                             />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[13px] font-bold text-gray-500 ml-1">Acto o Condicion Insegura</label>
+                            <div className="relative">
+                                <AlertCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                <input
+                                    type="text"
+                                    value={formData.actoCondicion}
+                                    onChange={(e) => setFormData({ ...formData, actoCondicion: e.target.value })}
+                                    className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
+                                />
+                            </div>
                         </div>
                         <div className="space-y-2">
                             <label className="text-[13px] font-bold text-gray-500 ml-1">Numero de Tratamientos Medicos</label>
@@ -305,19 +317,6 @@ export const ReporteEventoModal: React.FC<ReporteEventoModalProps> = ({
                         </div>
                     </div>
 
-                    {/* Acto o Condicion */}
-                    <div className="space-y-2">
-                        <label className="text-[13px] font-bold text-gray-500 ml-1">Acto o Condicion Insegura</label>
-                        <div className="relative">
-                            <AlertCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <input
-                                type="text"
-                                value={formData.actoCondicion}
-                                onChange={(e) => setFormData({ ...formData, actoCondicion: e.target.value })}
-                                className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-sm text-gray-800 focus:outline-none"
-                            />
-                        </div>
-                    </div>
 
                     <div className="flex gap-4 pt-10">
                         <button
