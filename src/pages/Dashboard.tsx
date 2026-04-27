@@ -164,7 +164,7 @@ export const Dashboard: React.FC = () => {
         mti: filteredEventosData.reduce((sum: number, e: any) => sum + (Number(e.num_tratamientos) || 0), 0),
         fai: filteredEventosData.reduce((sum: number, e: any) => sum + (Number(e.num_auxilios) || 0), 0),
         nearMiss: filteredEventosData.reduce((sum: number, e: any) => sum + (Number(e.num_incidentes) || 0), 0),
-        aci: filteredEventosData.filter((e: any) => e.acto_condicion && e.acto_condicion.trim() !== '').length
+        aci: filteredEventosData.filter((e: any) => e.acto_condicion && e.acto_condicion.trim() !== '' && e.acto_condicion.trim() !== '0').length
     };
 
     const getChartData = () => {

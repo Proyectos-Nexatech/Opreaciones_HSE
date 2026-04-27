@@ -135,7 +135,7 @@ export const DashboardPublico: React.FC = () => {
         mti: filteredEventos.reduce((sum, e) => sum + (Number(e.num_tratamientos) || 0), 0),
         fai: filteredEventos.reduce((sum, e) => sum + (Number(e.num_auxilios) || 0), 0),
         nearMiss: filteredEventos.reduce((sum, e) => sum + (Number(e.num_incidentes) || 0), 0),
-        aci: filteredEventos.filter(e => e.acto_condicion && e.acto_condicion.trim() !== '').length
+        aci: filteredEventos.filter(e => e.acto_condicion && e.acto_condicion.trim() !== '' && e.acto_condicion.trim() !== '0').length
     };
 
     const pieData = (() => {
