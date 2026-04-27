@@ -231,9 +231,9 @@ export const ReporteEventoModal: React.FC<ReporteEventoModalProps> = ({
                     </div>
 
                     {/* Contadores */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
                         <div className="space-y-2">
-                            <label className="text-[13px] font-bold text-gray-500 ml-1">Numero de Incidentes</label>
+                            <label className="text-[13px] font-bold text-gray-500 ml-1"># Incidentes</label>
                             <input
                                 type="number"
                                 value={formData.numIncidentes}
@@ -242,7 +242,7 @@ export const ReporteEventoModal: React.FC<ReporteEventoModalProps> = ({
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[13px] font-bold text-gray-500 ml-1">Numero de Auxilios</label>
+                            <label className="text-[13px] font-bold text-gray-500 ml-1"># Auxilios</label>
                             <input
                                 type="number"
                                 value={formData.numAuxilios}
@@ -251,7 +251,7 @@ export const ReporteEventoModal: React.FC<ReporteEventoModalProps> = ({
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[13px] font-bold text-gray-500 ml-1">Acto o Condicion Insegura</label>
+                            <label className="text-[13px] font-bold text-gray-500 ml-1">Acto o Condición Insegura</label>
                             <div className="relative">
                                 <AlertCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                 <input
@@ -263,7 +263,7 @@ export const ReporteEventoModal: React.FC<ReporteEventoModalProps> = ({
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[13px] font-bold text-gray-500 ml-1">Numero de Tratamientos Medicos</label>
+                            <label className="text-[13px] font-bold text-gray-500 ml-1"># Tratamientos Medicos</label>
                             <input
                                 type="number"
                                 value={formData.numTratamientos}
