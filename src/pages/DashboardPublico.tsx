@@ -95,13 +95,9 @@ export const DashboardPublico: React.FC = () => {
             setNovedadesData(novedades || []);
             setAusentismoData(ausencias || []);
             
-            // Si tiene un centro fijo, lo seleccionamos
-            if (profileCentroId) {
-                // Pre-seleccionar el centro si el perfil tiene uno, pero permitir cambiar a 'All'
-                setSelectedCentroId(profileCentroId);
-            } else {
-                setSelectedCentroId('All');
-            }
+            // Siempre iniciar en 'Todos los centros' para que coincida con el dashboard principal
+            // y no se oculten registros globales de la empresa.
+            setSelectedCentroId('All');
 
             // Calcular tasa de ausentismo
             if (personal && personal.length > 0) {
