@@ -241,7 +241,7 @@ export const DashboardPublico: React.FC = () => {
                                         className="w-full bg-blue-50 border border-brand-primary/20 rounded-2xl px-5 py-3.5 text-sm font-bold text-brand-text focus:outline-none focus:ring-4 focus:ring-brand-primary/10 transition-all shadow-inner appearance-none cursor-pointer"
                                     >
                                         <option value="All">Todos los centros</option>
-                                        {centrosData.map(centro => (
+                                        {centrosCosto.map(centro => (
                                             <option key={centro.id} value={centro.id}>{centro.name}</option>
                                         ))}
                                     </select>
