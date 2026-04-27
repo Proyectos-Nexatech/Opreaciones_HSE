@@ -122,7 +122,8 @@ export const ReporteAsistenciaModal: React.FC<ReporteAsistenciaModalProps> = ({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave({ ...formData, personIds: selectedPersons });
+        const selectedPeople = catPersonal.filter(p => selectedPersons.includes(p.id));
+        onSave({ ...formData, selectedPeople });
         onClose();
     };
 

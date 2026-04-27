@@ -190,8 +190,7 @@ export const Asistencia: React.FC = () => {
     const handleSave = async (data: any) => {
         try {
             if (editingRecord) {
-                const personId = data.personIds?.[0] ?? null;
-                const person = personId ? personal.find(p => p.id === personId) : null;
+                const person = data.selectedPeople?.[0] ?? null;
                 await updateAsistencia(editingRecord.id, {
                     nombre_persona: person ? person.name : (data.name || editingRecord.name),
                     jornada: data.shift || 'Dia',
@@ -201,11 +200,10 @@ export const Asistencia: React.FC = () => {
                     orden_servicio: data.orden || null,
                     fecha: data.date,
                 });
-            } else if (data.personIds?.length > 0) {
-                await Promise.all(data.personIds.map((id: string) => {
-                    const person = personal.find(p => p.id === id);
+            } else if (data.selectedPeople?.length > 0) {
+                await Promise.all(data.selectedPeople.map((person: any) => {
                     return createAsistencia({
-                        nombre_persona: person ? person.name : 'Unknown',
+                        nombre_persona: person.name || 'Unknown',
                         hora_ingreso: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
                         status: data.status || 'A tiempo',
                         jornada: data.shift || 'Dia',
@@ -455,6 +453,10 @@ export const Asistencia: React.FC = () => {
                 onClose={() => { setIsModalOpen(false); setEditingRecord(null); }}
                 onSave={handleSave}
                 initialData={editingRecord}
+                personal={personal}
+                supervisores={supervisores}
+                centros={centros}
+                empresas={empresas}
             />
         </div>
     );
