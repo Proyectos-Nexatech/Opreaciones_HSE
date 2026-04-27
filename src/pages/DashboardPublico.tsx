@@ -12,10 +12,11 @@ import {
     ShieldCheck,
     Map,
     Building2,
-    ChevronDown,
-    Loader2,
     FileText,
-    ArrowUpRight
+    ArrowUpRight,
+    X,
+    Hash,
+    ExternalLink
 } from 'lucide-react';
 import { getPermisos, getAusentismo, getPersonal, getEventos, getCentrosCostoByEmpresa, getProfileByToken, getNovedades } from '../services/hseService';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
@@ -40,9 +41,11 @@ export const DashboardPublico: React.FC = () => {
     const [permisosData, setPermisosData] = useState<any[]>([]);
     const [eventosData, setEventosData] = useState<any[]>([]);
     const [novedadesData, setNovedadesData] = useState<any[]>([]);
+    const [ausentismoData, setAusentismoData] = useState<any[]>([]);
     const [ausentismoRate, setAusentismoRate] = useState<string>('0%');
     const [centrosCosto, setCentrosCosto] = useState<any[]>([]);
     const [selectedCentroId, setSelectedCentroId] = useState<string>('All');
+    const [activeModal, setActiveModal] = useState<'permisos' | 'ausentismo' | 'novedades' | 'incidentes' | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const hasFetched = useRef(false);
@@ -88,6 +91,7 @@ export const DashboardPublico: React.FC = () => {
             setEventosData(eventos || []);
             setCentrosCosto(centros || []);
             setNovedadesData(novedades || []);
+            setAusentismoData(ausencias || []);
             
             // Si tiene un centro fijo, lo seleccionamos
             if (profileCentroId) {
@@ -159,6 +163,13 @@ export const DashboardPublico: React.FC = () => {
         });
         return { data: dataPorMes, supervisores: Array.from(supervisoresSet) };
     })();
+
+    const EmptyState = () => (
+        <div className="py-12 text-center">
+            <FileText className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+            <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">No se encontraron registros</p>
+        </div>
+    );
 
     if (loading) {
         return (
@@ -243,11 +254,172 @@ export const DashboardPublico: React.FC = () => {
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <StatCard icon={ShieldCheck} label="PERMISOS ACTIVOS" value={filteredPermisos.length.toString()} trend="+12%" color="blue" />
-                    <StatCard icon={Users} label="INDICADOR AUSENTISMO" value={ausentismoRate} trend="Actual" color="green" />
-                    <StatCard icon={FileText} label="NOVEDADES" value={filteredNovedades.length.toString()} trend="Reportadas" color="amber" />
-                    <StatCard icon={AlertCircle} label="INCIDENTES (MES)" value={(hseStats.nearMiss + hseStats.fai + hseStats.mti).toString()} trend="-15%" color="red" />
+                    <StatCard 
+                        icon={ShieldCheck} 
+                        label="PERMISOS ACTIVOS" 
+                        value={filteredPermisos.length.toString()} 
+                        trend="+12%" 
+                        color="blue" 
+                        onClick={() => setActiveModal('permisos')}
+                    />
+                    <StatCard 
+                        icon={Users} 
+                        label="INDICADOR AUSENTISMO" 
+                        value={ausentismoRate} 
+                        trend="Actual" 
+                        color="green" 
+                        onClick={() => setActiveModal('ausentismo')}
+                    />
+                    <StatCard 
+                        icon={FileText} 
+                        label="NOVEDADES" 
+                        value={filteredNovedades.length.toString()} 
+                        trend="Reportadas" 
+                        color="amber" 
+                        onClick={() => setActiveModal('novedades')}
+                    />
+                    <StatCard 
+                        icon={AlertCircle} 
+                        label="INCIDENTES (MES)" 
+                        value={(hseStats.nearMiss + hseStats.fai + hseStats.mti).toString()} 
+                        trend="-15%" 
+                        color="red" 
+                        onClick={() => setActiveModal('incidentes')}
+                    />
                 </div>
+
+                {/* Modal de Detalle de Indicadores */}
+                {activeModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-brand-text/40 backdrop-blur-sm animate-in fade-in duration-300">
+                        <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+                            <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                                <div>
+                                    <h3 className="text-xl font-black text-brand-text italic capitalize">
+                                        {activeModal === 'permisos' && 'Listado de Permisos'}
+                                        {activeModal === 'ausentismo' && 'Detalle de Ausentismo'}
+                                        {activeModal === 'novedades' && 'Bitácora de Novedades'}
+                                        {activeModal === 'incidentes' && 'Registro de Incidentes'}
+                                    </h3>
+                                    <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-widest mt-1">
+                                        {activeModal === 'permisos' && 'Registros actuales según filtros'}
+                                        {activeModal === 'ausentismo' && 'Personas ausentes y causas reportadas'}
+                                        {activeModal === 'novedades' && 'Últimos eventos operativos registrados'}
+                                        {activeModal === 'incidentes' && 'Consolidado de eventos de seguridad'}
+                                    </p>
+                                </div>
+                                <button 
+                                    onClick={() => setActiveModal(null)}
+                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                >
+                                    <X className="w-6 h-6 text-brand-text-muted" />
+                                </button>
+                            </div>
+                            <div className="p-8 max-h-[60vh] overflow-y-auto">
+                                {/* VISTA PERMISOS */}
+                                {activeModal === 'permisos' && (
+                                    <div className="space-y-3">
+                                        {filteredPermisos.length > 0 ? filteredPermisos.map((p, idx) => (
+                                            <div key={p.id || idx} className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 border border-gray-100 hover:border-brand-primary/20 hover:bg-white transition-all group">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-brand-primary shadow-sm group-hover:scale-110 transition-transform">
+                                                        <Hash className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-black text-brand-text tracking-tight">{p.numero_formato || 'S/N'}</p>
+                                                        <p className="text-[10px] font-bold text-brand-text-muted uppercase tracking-wider">{p.tipo}</p>
+                                                        {p.documento_url && (
+                                                            <a href={p.documento_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 mt-1 text-[9px] font-bold text-brand-primary hover:underline">
+                                                                <ExternalLink className="w-2.5 h-2.5" /> Ver Documento
+                                                            </a>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="text-right text-[10px]">
+                                                    <p className="font-black text-brand-text">{p.supervisor?.name || 'N/A'}</p>
+                                                    <p className="text-gray-400 font-bold">{p.fecha}</p>
+                                                </div>
+                                            </div>
+                                        )) : <EmptyState />}
+                                    </div>
+                                )}
+
+                                {/* VISTA AUSENTISMO */}
+                                {activeModal === 'ausentismo' && (
+                                    <div className="space-y-3">
+                                        {ausentismoData.length > 0 ? ausentismoData.map((a, idx) => (
+                                            <div key={a.id || idx} className="p-4 rounded-2xl bg-gray-50 border border-gray-100 hover:border-brand-primary/20 hover:bg-white transition-all">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <p className="text-sm font-black text-brand-text">{a.persona_ausente}</p>
+                                                    <span className="text-[9px] font-black bg-white px-2 py-1 rounded-lg border border-gray-100 text-gray-400">{a.fecha_reporte}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-brand-primary" />
+                                                    <p className="text-xs font-bold text-brand-text-muted italic">Causa: {a.causa}</p>
+                                                </div>
+                                            </div>
+                                        )) : <EmptyState />}
+                                    </div>
+                                )}
+
+                                {/* VISTA NOVEDADES */}
+                                {activeModal === 'novedades' && (
+                                    <div className="space-y-3">
+                                        {filteredNovedades.length > 0 ? filteredNovedades.map((n, idx) => (
+                                            <div key={n.id || idx} className="p-4 rounded-2xl bg-gray-50 border border-gray-100 hover:border-brand-primary/20 hover:bg-white transition-all">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <p className="text-sm font-black text-brand-text tracking-tight">{n.titulo}</p>
+                                                        <p className="text-[10px] font-bold text-brand-text-muted mt-1 uppercase tracking-widest">{n.tipo || 'Novedad Operativa'}</p>
+                                                    </div>
+                                                    <span className="text-[9px] font-black bg-brand-primary/5 text-brand-primary px-2 py-1 rounded-lg border border-brand-primary/10">{n.fecha_reporte || new Date(n.created_at).toLocaleDateString()}</span>
+                                                </div>
+                                            </div>
+                                        )) : <EmptyState />}
+                                    </div>
+                                )}
+
+                                {/* VISTA INCIDENTES */}
+                                {activeModal === 'incidentes' && (
+                                    <div className="space-y-3">
+                                        {filteredEventos.length > 0 ? filteredEventos.map((e, idx) => (
+                                            <div key={e.id || idx} className="p-5 rounded-[24px] bg-gray-50 border border-gray-100 hover:border-brand-primary/20 hover:bg-white transition-all">
+                                                <div className="flex justify-between items-center mb-4 pb-3 border-b border-gray-100">
+                                                    <div>
+                                                        <p className="text-[11px] font-black text-brand-text uppercase tracking-wider">{e.persona_involucrada || e.informacion_colaborador || 'Personal Operativo'}</p>
+                                                        <p className="text-[9px] font-bold text-gray-400 mt-0.5">{e.fecha_reporte}</p>
+                                                    </div>
+                                                    <div className="px-3 py-1 bg-brand-error/5 text-brand-error rounded-full text-[9px] font-black border border-brand-error/10 uppercase">Registro HSE</div>
+                                                </div>
+                                                <div className="grid grid-cols-3 gap-2">
+                                                    <div className="bg-white p-2.5 rounded-xl border border-gray-100 text-center">
+                                                        <p className="text-lg font-black text-brand-text leading-none">{e.num_incidentes || 0}</p>
+                                                        <p className="text-[8px] font-bold text-gray-400 uppercase mt-1">Incidentes</p>
+                                                    </div>
+                                                    <div className="bg-white p-2.5 rounded-xl border border-gray-100 text-center">
+                                                        <p className="text-lg font-black text-brand-text leading-none">{e.num_auxilios || 0}</p>
+                                                        <p className="text-[8px] font-bold text-gray-400 uppercase mt-1">Auxilios</p>
+                                                    </div>
+                                                    <div className="bg-white p-2.5 rounded-xl border border-gray-100 text-center">
+                                                        <p className="text-lg font-black text-brand-text leading-none">{e.num_tratamientos || 0}</p>
+                                                        <p className="text-[8px] font-bold text-gray-400 uppercase mt-1">Tratamientos</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )) : <EmptyState />}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end">
+                                <button 
+                                    onClick={() => setActiveModal(null)}
+                                    className="px-8 py-3 bg-brand-primary text-white font-bold rounded-2xl shadow-lg shadow-brand-primary/20 hover:scale-105 active:scale-95 transition-all text-sm uppercase tracking-widest"
+                                >
+                                    Cerrar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-1">
@@ -365,7 +537,8 @@ const StatCard: React.FC<{
     value: string;
     trend?: string;
     color: 'blue' | 'green' | 'amber' | 'red';
-}> = ({ icon: Icon, label, value, trend, color }) => {
+    onClick?: () => void;
+}> = ({ icon: Icon, label, value, trend, color, onClick }) => {
     const colorClasses = {
         blue: "bg-blue-500/10 text-blue-600 border-blue-200/50",
         green: "bg-emerald-500/10 text-emerald-600 border-emerald-200/50",
@@ -381,7 +554,13 @@ const StatCard: React.FC<{
     };
 
     return (
-        <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+        <div 
+            onClick={onClick}
+            className={cn(
+                "bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all group relative overflow-hidden",
+                onClick ? "cursor-pointer hover:border-brand-primary/20" : ""
+            )}
+        >
             <div className="flex justify-between items-start mb-6">
                 <div className={cn("p-3 rounded-2xl", colorClasses[color])}>
                     <Icon className="w-5 h-5" />
