@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, NavLink } from 'react-router-dom';
 import { LogOut, Building2, ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { NexatechIcon } from './NexatechIcon';
@@ -39,6 +39,21 @@ export const DashboardClienteLayout: React.FC = () => {
                             {empresaNombre}
                         </span>
                     </div>
+
+                    {/* Separador */}
+                    <div className="w-px h-6 bg-gray-200 mx-2 hidden sm:block" />
+
+                    {/* Info Formulas */}
+                    <NavLink
+                        to="/dashboard-cliente/info"
+                        className={({ isActive }) =>
+                            `hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold transition-colors ${
+                                isActive ? 'bg-brand-primary/10 text-brand-primary' : 'text-brand-text-muted hover:bg-gray-50'
+                            }`
+                        }
+                    >
+                        Info Fórmulas
+                    </NavLink>
                 </div>
 
                 {/* Usuario + Logout */}

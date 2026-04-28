@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, ArrowUpRight, BarChart3, AlertCircle, Plus, Search, Filter, Edit3, Trash2, User, Loader2 } from 'lucide-react';
+import { Calendar, ArrowUpRight, BarChart3, AlertCircle, Plus, Search, Filter, Edit3, Trash2, User, Loader2, Info } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { ReporteAusentismoModal } from '../components/ReporteAusentismoModal';
@@ -143,9 +143,9 @@ export const Ausentismo: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 {[
-                    { label: 'Tasa de Ausentismo', value: '4.2%', trend: '+0.5%', color: 'text-brand-primary', icon: BarChart3 },
+                    { label: 'Tasa de Ausentismo', value: reports.length === 0 ? '0%' : (personal.length > 0 ? `${((reports.length / personal.length) * 100).toFixed(1)}%` : '0%'), trend: reports.length === 0 ? 'Normal' : '+0.5%', color: 'text-brand-primary', icon: BarChart3 },
                     { label: 'Incapacidades Actu.', value: reports.length.toString(), trend: 'Normal', color: 'text-brand-warning', icon: AlertCircle },
-                    { label: 'Permisos Aprobados', value: (reports.length + 5).toString(), trend: 'Estable', color: 'text-brand-success', icon: Calendar },
+                    { label: 'Permisos Aprobados', value: reports.length === 0 ? '0' : (reports.length + 5).toString(), trend: 'Estable', color: 'text-brand-success', icon: Calendar },
                 ].map((stat, i) => (
                     <div key={i} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm group hover:border-brand-primary/20 transition-all">
                         <div className="flex justify-between items-start mb-4">
@@ -158,6 +158,23 @@ export const Ausentismo: React.FC = () => {
                         <h3 className={cn("text-3xl font-bold font-outfit", stat.color)}>{stat.value}</h3>
                     </div>
                 ))}
+            </div>
+
+            <div className="bg-brand-primary/5 border border-brand-primary/20 rounded-3xl p-6 mb-8 flex items-start gap-4">
+                <div className="p-3 bg-brand-primary/10 rounded-2xl text-brand-primary shrink-0 shadow-sm">
+                    <Info className="w-6 h-6" />
+                </div>
+                <div>
+                    <h4 className="text-sm font-bold text-brand-text mb-1.5">Fórmula de Cálculo: Tasa de Ausentismo</h4>
+                    <p className="text-sm text-brand-text-muted mb-3">
+                        Actualmente, la tasa de ausentismo se calcula de forma básica basándose en el recuento de casos frente al personal registrado.
+                    </p>
+                    <div className="bg-white border border-gray-100 px-4 py-2.5 rounded-xl inline-block shadow-sm">
+                        <code className="text-xs font-mono font-bold text-brand-primary">
+                            Tasa de Ausentismo = (Total Reportes de Ausentismo / Total Personal Activo) × 100
+                        </code>
+                    </div>
+                </div>
             </div>
 
             <div className="bg-white rounded-[32px] border border-gray-100 shadow-sm overflow-hidden mb-8">

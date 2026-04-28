@@ -12,7 +12,8 @@ import {
     Map,
     Building2,
     ChevronDown,
-    ClipboardList
+    ClipboardList,
+    Info
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -43,6 +44,7 @@ const formItems = [
 
 const generalItems = [
     { name: 'Configuración', icon: Settings, path: '/configuracion', permission: 'configuracion' },
+    { name: 'Info. Fórmulas', icon: Info, path: '/info', permission: 'dashboard' },
     { name: 'Ayuda', icon: HelpCircle, path: '/ayuda', permission: 'dashboard' },
 ];
 

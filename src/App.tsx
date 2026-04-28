@@ -23,6 +23,7 @@ import { Ausentismo } from './pages/Ausentismo';
 import { EventosAccidentes } from './pages/EventosAccidentes';
 import { Novedades } from './pages/Novedades';
 import { OcurrioAsi } from './pages/OcurrioAsi';
+import { Info } from './pages/Info';
 import { Personal } from './pages/Personal';
 import { PersonalHSE } from './pages/PersonalHSE';
 import { CentrosCosto } from './pages/CentrosCosto';
@@ -44,6 +45,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard-cliente" element={<DashboardClienteLayout />}>
               <Route index element={<DashboardCliente />} />
+              <Route path="info" element={<Info />} />
             </Route>
           </Route>
 
@@ -65,6 +67,7 @@ function App() {
               <Route path="equipo" element={<Equipo />} />
               <Route path="calendario" element={<Calendario />} />
               <Route path="configuracion" element={<Configuracion />} />
+              <Route path="info" element={<Info />} />
               <Route path="ayuda" element={<Ayuda />} />
               <Route path="nuevo-permiso" element={<NuevoPermiso />} />
             </Route>
