@@ -586,10 +586,6 @@ export const ReportesPermisos: React.FC = () => {
                                                     >
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
-                                                    <div className="w-px h-4 bg-gray-100 mx-1" />
-                                                    <button className="p-2 rounded-lg hover:bg-white hover:shadow-sm text-brand-text-muted hover:text-brand-primary transition-all">
-                                                        <ChevronRight className="w-5 h-5" />
-                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>
