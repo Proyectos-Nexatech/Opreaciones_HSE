@@ -810,6 +810,7 @@ export const ReportesPermisos: React.FC = () => {
                                                     <input
                                                         name="hora_firma"
                                                         type="time"
+                                                        defaultValue={editingReport?.hora_firma || ''}
                                                         className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-9 pr-3 text-xs focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/50 transition-all text-brand-text font-bold shadow-sm"
                                                     />
                                                 </div>
