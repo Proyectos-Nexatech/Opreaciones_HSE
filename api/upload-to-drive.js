@@ -4,6 +4,7 @@
 export const config = {
     api: {
         bodyParser: false, // We handle raw multipart ourselves
+        sizeLimit: '10mb', // Max limit for Vercel functions (Pro: 15MB, Hobby: 4.5MB)
     },
 };
 

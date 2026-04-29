@@ -144,6 +144,18 @@ export const ReportesPermisos: React.FC = () => {
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
+
+        // Limite de tamaño para Vercel (4.5MB Hobby, 15MB Pro)
+        // Usamos 4MB como límite preventivo para evitar el error 413 del servidor
+        const MAX_SIZE_MB = 4.5;
+        const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+
+        if (file.size > MAX_SIZE_BYTES) {
+            alert(`El archivo es demasiado grande (${(file.size / (1024 * 1024)).toFixed(2)}MB). El límite máximo permitido es de ${MAX_SIZE_MB}MB para garantizar la subida.\n\nPor favor, reduzca el tamaño del PDF o la imagen antes de intentar de nuevo.`);
+            e.target.value = ''; // Reset input
+            return;
+        }
+
         try {
             setUploadingDoc(true);
             const fd = new FormData();
