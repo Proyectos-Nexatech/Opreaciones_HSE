@@ -250,7 +250,7 @@ export async function deletePermiso(id: string) {
 // REPORTE DE ASISTENCIA
 // ============================================================
 
-export async function getAsistencia(filters?: { fecha?: string; userId?: string }) {
+export async function getAsistencia(filters?: { fecha?: string; userId?: string; email?: string }) {
     let query = supabase
         .from('reporte_asistencia')
         .select('*')
@@ -262,6 +262,10 @@ export async function getAsistencia(filters?: { fecha?: string; userId?: string 
     // Filtrar por usuario creador (no-admin: solo ve sus propios registros)
     if (filters?.userId) {
         query = query.eq('created_by', filters.userId);
+    }
+    // Fallback: Filtrar por email si se proporciona (útil cuando created_by se usa para supervisores)
+    if (filters?.email) {
+        query = query.eq('email', filters.email);
     }
 
     const { data, error } = await query;

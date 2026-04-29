@@ -113,7 +113,7 @@ function DayDetail({ date, rows, onClose, onEdit, onDelete }: {
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 export const Asistencia: React.FC = () => {
-    const { filterUserId, userId, isAdmin } = useUserFilter();
+    const { filterUserId, userId, isAdmin, userEmail } = useUserFilter();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState<any>(null);
     const [records, setRecords] = useState<any[]>([]);
@@ -130,7 +130,7 @@ export const Asistencia: React.FC = () => {
         setLoading(true);
         try {
             const [asistenciaData, personalData, supervisoresData, centrosData, empresasData] = await Promise.all([
-                getAsistencia(filterUserId ? { userId: filterUserId } : undefined),
+                getAsistencia(filterUserId ? { email: userEmail || undefined } : undefined),
                 getPersonal(), getSupervisores(), getCentrosCosto(), getEmpresas()
             ]);
             setPersonal(personalData || []);
@@ -212,6 +212,7 @@ export const Asistencia: React.FC = () => {
                         centro_costo_id: data.centro || null,
                         orden_servicio: data.orden || null,
                         fecha: data.date,
+                        // Mantener compatibilidad con la selección de supervisor en esta tabla específica
                         created_by: data.supervisorId || userId || null,
                     });
                 }));

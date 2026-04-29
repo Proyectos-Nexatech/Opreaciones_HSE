@@ -20,5 +20,7 @@ export function useUserFilter() {
         isAdmin,
         /** Si no es admin, usar este filtro en las queries; si es admin, es null */
         filterUserId: isAdmin ? null : (user?.id ?? null),
+        /** Email del usuario autenticado */
+        userEmail: user?.email ?? null,
     };
 }
