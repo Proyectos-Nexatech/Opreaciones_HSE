@@ -155,19 +155,7 @@ export const Dashboard: React.FC = () => {
 
     // Calcular tasa de ausentismo de forma reactiva
     const currentAusentismoRate = (() => {
-        if (!personalData || personalData.length === 0) return '0';
-
-        const filteredPersonal = personalData.filter(p => {
-            const matchesEmpresa = selectedEmpresa === 'All' || (p.empresa?.name || 'Sin Asignar') === selectedEmpresa;
-            const matchesCentro = selectedCentro === 'All' || (p.centro?.name || 'Sin Asignar') === selectedCentro;
-            return matchesEmpresa && matchesCentro && p.centro_costo_id;
-        });
-
-        const totalPersonal = filteredPersonal.length;
-        const ausentesTotales = filteredAusentismoData.length;
-
-        // Ahora solo devolvemos el conteo de personas, no el porcentaje
-        return ausentesTotales.toString();
+        return filteredAusentismoData.length.toString();
     })();
 
     const hseStats = {

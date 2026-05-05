@@ -132,18 +132,7 @@ export const DashboardPublico: React.FC = () => {
 
     // Calcular tasa de ausentismo de forma reactiva según los filtros aplicados
     const currentAusentismoRate = (() => {
-        if (!personalData || personalData.length === 0) return '0';
-        
-        // Filtrar personal por el centro seleccionado
-        const personalEnCentro = personalData.filter(p => {
-            if (selectedCentroId === 'All') return true; // Contar a todos los de la empresa
-            return p.centro_costo_id === selectedCentroId || p.centro?.id === selectedCentroId;
-        });
-
-        const totalPersonal = personalEnCentro.length;
         const ausentesTotales = filteredAusentismo.length;
-
-        // Ahora solo devolvemos el conteo de personas, no el porcentaje
         return ausentesTotales.toString();
     })();
 
