@@ -333,32 +333,24 @@ export const Dashboard: React.FC = () => {
                 <StatCard 
                     title="Permisos Activos" 
                     value={filteredPermisosData.length.toString()} 
-                    trend="+12%" 
-                    trendType="positive" 
                     icon={ShieldCheck} 
                     onClick={() => setActiveModal('permisos')}
                 />
                 <StatCard 
                     title="Indicador Ausentismo" 
                     value={currentAusentismoRate} 
-                    trend="Actual" 
-                    trendType="meta" 
                     icon={Users} 
                     onClick={() => setActiveModal('ausentismo')}
                 />
                 <StatCard 
                     title="Novedades" 
                     value={filteredNovedadesData.length.toString()} 
-                    trend="Reportadas" 
-                    trendType="meta" 
                     icon={FileText} 
                     onClick={() => setActiveModal('novedades')}
                 />
                 <StatCard 
                     title="Incidentes (Mes)" 
                     value={(hseStats.nearMiss + hseStats.fai + hseStats.mti).toString()} 
-                    trend="-15%" 
-                    trendType="positive" 
                     icon={AlertCircle} 
                     onClick={() => setActiveModal('incidentes')}
                 />

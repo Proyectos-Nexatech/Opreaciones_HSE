@@ -274,7 +274,6 @@ export const DashboardPublico: React.FC = () => {
                         icon={ShieldCheck} 
                         label="PERMISOS ACTIVOS" 
                         value={filteredPermisos.length.toString()} 
-                        trend="+12%" 
                         color="blue" 
                         onClick={() => setActiveModal('permisos')}
                     />
@@ -282,7 +281,6 @@ export const DashboardPublico: React.FC = () => {
                         icon={Users} 
                         label="INDICADOR AUSENTISMO" 
                         value={currentAusentismoRate} 
-                        trend="Actual" 
                         color="green" 
                         onClick={() => setActiveModal('ausentismo')}
                     />
@@ -290,7 +288,6 @@ export const DashboardPublico: React.FC = () => {
                         icon={FileText} 
                         label="NOVEDADES" 
                         value={filteredNovedades.length.toString()} 
-                        trend="Reportadas" 
                         color="amber" 
                         onClick={() => setActiveModal('novedades')}
                     />
@@ -298,7 +295,6 @@ export const DashboardPublico: React.FC = () => {
                         icon={AlertCircle} 
                         label="INCIDENTES (MES)" 
                         value={(hseStats.nearMiss + hseStats.fai + hseStats.mti).toString()} 
-                        trend="-15%" 
                         color="red" 
                         onClick={() => setActiveModal('incidentes')}
                     />
