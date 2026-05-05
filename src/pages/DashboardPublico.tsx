@@ -44,6 +44,7 @@ export const DashboardPublico: React.FC = () => {
     const [eventosData, setEventosData] = useState<any[]>([]);
     const [novedadesData, setNovedadesData] = useState<any[]>([]);
     const [ausentismoData, setAusentismoData] = useState<any[]>([]);
+    const [personalData, setPersonalData] = useState<any[]>([]);
     const [ausentismoRate, setAusentismoRate] = useState<string>('0%');
     const [centrosCosto, setCentrosCosto] = useState<any[]>([]);
     const [selectedCentroId, setSelectedCentroId] = useState<string>('All');
@@ -94,6 +95,7 @@ export const DashboardPublico: React.FC = () => {
             setCentrosCosto(centros || []);
             setNovedadesData(novedades || []);
             setAusentismoData(ausencias || []);
+            setPersonalData(personal || []);
             
             // Siempre iniciar en 'Todos los centros' para que coincida con el dashboard principal
             // y no se oculten registros globales de la empresa.
@@ -129,10 +131,10 @@ export const DashboardPublico: React.FC = () => {
 
     // Calcular tasa de ausentismo de forma reactiva según los filtros aplicados
     const currentAusentismoRate = (() => {
-        if (!personal || personal.length === 0) return '0%';
+        if (!personalData || personalData.length === 0) return '0%';
         
         // Filtrar personal por el centro seleccionado
-        const personalEnCentro = personal.filter(p => {
+        const personalEnCentro = personalData.filter(p => {
             if (selectedCentroId === 'All') return !!p.centro_costo_id;
             return p.centro_costo_id === selectedCentroId || p.centro?.id === selectedCentroId;
         });
