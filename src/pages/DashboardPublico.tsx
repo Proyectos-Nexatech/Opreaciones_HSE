@@ -99,15 +99,6 @@ export const DashboardPublico: React.FC = () => {
             // y no se oculten registros globales de la empresa.
             setSelectedCentroId('All');
 
-            // Calcular tasa de ausentismo
-            if (personal && personal.length > 0) {
-                const totalPersonal = personal.filter((p: any) => p.centro_costo_id).length;
-                const ausentesTotales = ausencias ? ausencias.length : 0;
-                if (totalPersonal > 0) {
-                    const rate = ((ausentesTotales / totalPersonal) * 100).toFixed(1);
-                    setAusentismoRate(`${rate}%`);
-                }
-            }
         } catch (err: any) {
             console.error('Error loading public dashboard:', err);
             setError('Error al cargar los datos. El token podría haber expirado o ser incorrecto.');
@@ -130,6 +121,30 @@ export const DashboardPublico: React.FC = () => {
         if (selectedCentroId === 'All') return true;
         return n.centro_costo_id === selectedCentroId || n.centro?.id === selectedCentroId;
     });
+
+    const filteredAusentismo = ausentismoData.filter(a => {
+        if (selectedCentroId === 'All') return true;
+        return a.centro_costo_id === selectedCentroId || a.centro?.id === selectedCentroId;
+    });
+
+    // Calcular tasa de ausentismo de forma reactiva según los filtros aplicados
+    const currentAusentismoRate = (() => {
+        if (!personal || personal.length === 0) return '0%';
+        
+        // Filtrar personal por el centro seleccionado
+        const personalEnCentro = personal.filter(p => {
+            if (selectedCentroId === 'All') return !!p.centro_costo_id;
+            return p.centro_costo_id === selectedCentroId || p.centro?.id === selectedCentroId;
+        });
+
+        const totalPersonal = personalEnCentro.length;
+        const ausentesTotales = filteredAusentismo.length;
+
+        if (totalPersonal > 0) {
+            return `${((ausentesTotales / totalPersonal) * 100).toFixed(1)}%`;
+        }
+        return '0%';
+    })();
 
     const hseStats = {
         mti: filteredEventos.reduce((sum, e) => sum + (Number(e.num_tratamientos) || 0), 0),
@@ -265,7 +280,7 @@ export const DashboardPublico: React.FC = () => {
                     <StatCard 
                         icon={Users} 
                         label="INDICADOR AUSENTISMO" 
-                        value={ausentismoRate} 
+                        value={currentAusentismoRate} 
                         trend="Actual" 
                         color="green" 
                         onClick={() => setActiveModal('ausentismo')}
@@ -346,7 +361,7 @@ export const DashboardPublico: React.FC = () => {
                                 {/* VISTA AUSENTISMO */}
                                 {activeModal === 'ausentismo' && (
                                     <div className="space-y-3">
-                                        {ausentismoData.length > 0 ? ausentismoData.map((a, idx) => (
+                                        {filteredAusentismo.length > 0 ? filteredAusentismo.map((a, idx) => (
                                             <div key={a.id || idx} className="p-4 rounded-2xl bg-gray-50 border border-gray-100 hover:border-brand-primary/20 hover:bg-white transition-all">
                                                 <div className="flex justify-between items-start mb-2">
                                                     <p className="text-sm font-black text-brand-text">{a.persona_ausente}</p>

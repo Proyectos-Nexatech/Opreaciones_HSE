@@ -81,8 +81,8 @@ export const Dashboard: React.FC = () => {
     const [eventosData, setEventosData] = useState<any[]>([]);
     const [novedadesData, setNovedadesData] = useState<any[]>([]);
     const [ausentismoData, setAusentismoData] = useState<any[]>([]);
+    const [personalData, setPersonalData] = useState<any[]>([]);
     const [stats, setStats] = useState({ total: 0 });
-    const [ausentismoRate, setAusentismoRate] = useState<string>('0%');
     const [activeModal, setActiveModal] = useState<'permisos' | 'ausentismo' | 'novedades' | 'incidentes' | null>(null);
 
     // Define color mappings for the specific permit types
@@ -98,37 +98,22 @@ export const Dashboard: React.FC = () => {
     useEffect(() => {
         const loadDashboardData = async () => {
             try {
-                const permisos = await getPermisos(filterUserId ? { userId: filterUserId } : undefined);
-                setPermisosData(permisos || []);
-                setStats({ total: permisos?.length || 0 });
-
-                // Calcular Tasa de Ausentismo
-                const [ausencias, personal] = await Promise.all([
+                // Cargar todo el set de datos inicial
+                const [permisos, ausencias, personal, eventos, novedades] = await Promise.all([
+                    getPermisos(filterUserId ? { userId: filterUserId } : undefined),
                     getAusentismo(filterUserId ? { userId: filterUserId } : undefined),
-                    getPersonal()
-                ]);
-                setAusentismoData(ausencias || []);
-
-                if (personal && personal.length > 0) {
-                    const totalPersonal = personal.filter((p: any) => p.centro_costo_id).length;
-                    const ausentesTotales = ausencias ? ausencias.length : 0;
-                    if (totalPersonal > 0) {
-                        const rate = ((ausentesTotales / totalPersonal) * 100).toFixed(1);
-                        setAusentismoRate(`${rate}%`);
-                    } else {
-                        setAusentismoRate('N/A');
-                    }
-                } else {
-                    setAusentismoRate('N/A');
-                }
-
-                // Cargar datos de HSE para la pirámide
-                const [eventos, novedades] = await Promise.all([
+                    getPersonal(),
                     getEventos(filterUserId ? { userId: filterUserId } : undefined),
                     getNovedades(filterUserId ? { userId: filterUserId } : undefined)
                 ]);
+
+                setPermisosData(permisos || []);
+                setAusentismoData(ausencias || []);
+                setPersonalData(personal || []); // Necesitamos guardar el personal para el cálculo reactivo
                 setEventosData(eventos || []);
                 setNovedadesData(novedades || []);
+                setStats({ total: permisos?.length || 0 });
+
             } catch (error) {
                 console.error("Error al cargar data del dashboard:", error);
             }
@@ -159,6 +144,32 @@ export const Dashboard: React.FC = () => {
         const matchesCentro = selectedCentro === 'All' || (n.centro?.name || 'Sin Asignar') === selectedCentro;
         return matchesEmpresa && matchesCentro;
     });
+
+    const filteredAusentismoData = ausentismoData.filter(a => {
+        const matchesEmpresa = selectedEmpresa === 'All' || (a.empresa?.name || 'Sin Asignar') === selectedEmpresa;
+        const matchesCentro = selectedCentro === 'All' || (a.centro?.name || 'Sin Asignar') === selectedCentro;
+        const matchesSupervisor = selectedSupervisor === 'All' || a.reporter === selectedSupervisor || (a.email === selectedSupervisor);
+        return matchesEmpresa && matchesCentro && matchesSupervisor;
+    });
+
+    // Calcular tasa de ausentismo de forma reactiva
+    const currentAusentismoRate = (() => {
+        if (!personalData || personalData.length === 0) return '0%';
+
+        const filteredPersonal = personalData.filter(p => {
+            const matchesEmpresa = selectedEmpresa === 'All' || (p.empresa?.name || 'Sin Asignar') === selectedEmpresa;
+            const matchesCentro = selectedCentro === 'All' || (p.centro?.name || 'Sin Asignar') === selectedCentro;
+            return matchesEmpresa && matchesCentro && p.centro_costo_id;
+        });
+
+        const totalPersonal = filteredPersonal.length;
+        const ausentesTotales = filteredAusentismoData.length;
+
+        if (totalPersonal > 0) {
+            return `${((ausentesTotales / totalPersonal) * 100).toFixed(1)}%`;
+        }
+        return '0%';
+    })();
 
     const hseStats = {
         mti: filteredEventosData.reduce((sum: number, e: any) => sum + (Number(e.num_tratamientos) || 0), 0),
@@ -330,7 +341,7 @@ export const Dashboard: React.FC = () => {
                 />
                 <StatCard 
                     title="Indicador Ausentismo" 
-                    value={ausentismoRate} 
+                    value={currentAusentismoRate} 
                     trend="Actual" 
                     trendType="meta" 
                     icon={Users} 
@@ -412,7 +423,7 @@ export const Dashboard: React.FC = () => {
                             {/* VISTA AUSENTISMO */}
                             {activeModal === 'ausentismo' && (
                                 <div className="space-y-3">
-                                    {ausentismoData.length > 0 ? ausentismoData.map((a, idx) => (
+                                    {filteredAusentismoData.length > 0 ? filteredAusentismoData.map((a, idx) => (
                                         <div key={a.id || idx} className="p-4 rounded-2xl bg-gray-50 border border-gray-100 hover:border-brand-primary/20 hover:bg-white transition-all">
                                             <div className="flex justify-between items-start mb-2">
                                                 <p className="text-sm font-black text-brand-text">{a.persona_ausente}</p>
