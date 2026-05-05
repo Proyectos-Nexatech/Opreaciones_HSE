@@ -136,7 +136,7 @@ export const DashboardPublico: React.FC = () => {
         
         // Filtrar personal por el centro seleccionado
         const personalEnCentro = personalData.filter(p => {
-            if (selectedCentroId === 'All') return !!p.centro_costo_id;
+            if (selectedCentroId === 'All') return true; // Contar a todos los de la empresa
             return p.centro_costo_id === selectedCentroId || p.centro?.id === selectedCentroId;
         });
 

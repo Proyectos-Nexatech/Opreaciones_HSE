@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             // Create a timeout promise
             const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Profile fetch timeout')), 7000)
+                setTimeout(() => reject(new Error('Profile fetch timeout')), 15000)
             );
 
             // Execute query with race against timeout
