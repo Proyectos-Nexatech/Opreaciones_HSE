@@ -155,7 +155,7 @@ export const Dashboard: React.FC = () => {
 
     // Calcular tasa de ausentismo de forma reactiva
     const currentAusentismoRate = (() => {
-        if (!personalData || personalData.length === 0) return '0%';
+        if (!personalData || personalData.length === 0) return '0';
 
         const filteredPersonal = personalData.filter(p => {
             const matchesEmpresa = selectedEmpresa === 'All' || (p.empresa?.name || 'Sin Asignar') === selectedEmpresa;

@@ -46,7 +46,7 @@ export const DashboardPublico: React.FC = () => {
     const [novedadesData, setNovedadesData] = useState<any[]>([]);
     const [ausentismoData, setAusentismoData] = useState<any[]>([]);
     const [personalData, setPersonalData] = useState<any[]>([]);
-    const [ausentismoRate, setAusentismoRate] = useState<string>('0%');
+    const [ausentismoRate, setAusentismoRate] = useState<string>('0');
     const [centrosCosto, setCentrosCosto] = useState<any[]>([]);
     const [selectedCentroId, setSelectedCentroId] = useState<string>('All');
     const [activeModal, setActiveModal] = useState<'permisos' | 'ausentismo' | 'novedades' | 'incidentes' | null>(null);
@@ -132,7 +132,7 @@ export const DashboardPublico: React.FC = () => {
 
     // Calcular tasa de ausentismo de forma reactiva según los filtros aplicados
     const currentAusentismoRate = (() => {
-        if (!personalData || personalData.length === 0) return '0%';
+        if (!personalData || personalData.length === 0) return '0';
         
         // Filtrar personal por el centro seleccionado
         const personalEnCentro = personalData.filter(p => {

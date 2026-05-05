@@ -70,7 +70,7 @@ export const DashboardCliente: React.FC = () => {
 
     const [permisosData, setPermisosData] = useState<any[]>([]);
     const [eventosData, setEventosData] = useState<any[]>([]);
-    const [ausentismoRate, setAusentismoRate] = useState<string>('0%');
+    const [ausentismoRate, setAusentismoRate] = useState<string>('0');
     const [centrosCosto, setCentrosCosto] = useState<any[]>([]);
     const [selectedCentroId, setSelectedCentroId] = useState<string>('All');
     const [loading, setLoading] = useState(true);
@@ -98,16 +98,11 @@ export const DashboardCliente: React.FC = () => {
             setEventosData(eventos || []);
             setCentrosCosto(centros || []);
 
-            // Calcular tasa de ausentismo
-            if (personal && personal.length > 0) {
-                const totalPersonal = personal.filter((p: any) => p.centro_costo_id).length;
-                const ausentesTotales = ausencias ? ausencias.length : 0;
-                if (totalPersonal > 0) {
-                    const rate = ((ausentesTotales / totalPersonal) * 100).toFixed(1);
-                    setAusentismoRate(`${rate}%`);
-                } else {
-                    setAusentismoRate('N/A');
-                }
+            // Calcular tasa de ausentismo (conteo absoluto)
+            if (ausencias) {
+                setAusentismoRate(ausencias.length.toString());
+            } else {
+                setAusentismoRate('0');
             }
         } catch (error) {
             console.error('Error al cargar datos del dashboard cliente:', error);
@@ -291,29 +286,21 @@ export const DashboardCliente: React.FC = () => {
                 <StatCard
                     title="Permisos Totales"
                     value={filteredPermisos.length.toString()}
-                    trend="Activos"
-                    trendType="meta"
                     icon={ShieldCheck}
                 />
                 <StatCard
                     title="Indicador Ausentismo"
                     value={ausentismoRate}
-                    trend="Actual"
-                    trendType="meta"
                     icon={Users}
                 />
                 <StatCard
                     title="Centros de Costo"
                     value={centrosCosto.length.toString()}
-                    trend="Asignados"
-                    trendType="positive"
                     icon={Map}
                 />
                 <StatCard
                     title="Incidentes"
                     value={(hseStats.nearMiss + hseStats.fai + hseStats.mti).toString()}
-                    trend="Registrados"
-                    trendType={hseStats.nearMiss + hseStats.fai + hseStats.mti === 0 ? 'positive' : 'negative'}
                     icon={AlertCircle}
                 />
             </div>
