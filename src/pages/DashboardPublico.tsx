@@ -18,7 +18,8 @@ import {
     ArrowUpRight,
     X,
     Hash,
-    ExternalLink
+    ExternalLink,
+    Clock
 } from 'lucide-react';
 import { getPermisos, getAusentismo, getPersonal, getEventos, getCentrosCostoByEmpresa, getProfileByToken, getNovedades } from '../services/hseService';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
@@ -352,6 +353,12 @@ export const DashboardPublico: React.FC = () => {
                                                 <div className="text-right text-[10px]">
                                                     <p className="font-black text-brand-text">{p.supervisor?.name || 'N/A'}</p>
                                                     <p className="text-gray-400 font-bold">{p.fecha}</p>
+                                                    {p.hora_firma && (
+                                                        <div className="flex items-center justify-end gap-1 mt-1 text-brand-primary font-black">
+                                                            <Clock className="w-2.5 h-2.5" />
+                                                            <span>{p.hora_firma}</span>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         )) : <EmptyState />}
