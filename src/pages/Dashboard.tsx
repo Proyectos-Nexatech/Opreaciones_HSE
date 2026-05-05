@@ -165,10 +165,8 @@ export const Dashboard: React.FC = () => {
         const totalPersonal = filteredPersonal.length;
         const ausentesTotales = filteredAusentismoData.length;
 
-        if (totalPersonal > 0) {
-            return `${((ausentesTotales / totalPersonal) * 100).toFixed(1)}%`;
-        }
-        return '0%';
+        // Ahora solo devolvemos el conteo de personas, no el porcentaje
+        return ausentesTotales.toString();
     })();
 
     const hseStats = {
