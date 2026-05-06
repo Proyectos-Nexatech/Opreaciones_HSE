@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ClipboardList, Filter, Search, Edit3, Trash2, Plus, Clock, Loader2 } from 'lucide-react';
+import { ClipboardList, Filter, Search, Edit3, Trash2, Plus, Clock, Loader2, Building2, ChevronDown } from 'lucide-react';
 import { ReporteNovedadesModal } from '../components/ReporteNovedadesModal';
 import { getNovedades, createNovedad, updateNovedad, deleteNovedad as deleteNovedadService, getPersonal, getSupervisores, getCentrosCosto, getEmpresas } from '../services/hseService';
 import { useUserFilter } from '../hooks/useUserFilter';
@@ -15,9 +15,11 @@ export const Novedades: React.FC = () => {
     const [supervisores, setSupervisores] = useState<any[]>([]);
     const [centros, setCentros] = useState<any[]>([]);
     const [empresas, setEmpresas] = useState<any[]>([]);
+    const [selectedCentroId, setSelectedCentroId] = useState<string>('');
 
     const loadData = async () => {
         try {
+            setLoading(true);
             const [novedadesData, personalData, supervisoresData, centrosData, empresasData] = await Promise.all([
                 getNovedades(filterUserId ? { userId: filterUserId } : undefined),
                 getPersonal(),
@@ -28,8 +30,19 @@ export const Novedades: React.FC = () => {
             
             setPersonal(personalData || []);
             setSupervisores(supervisoresData || []);
-            setCentros(centrosData || []);
             setEmpresas(empresasData || []);
+
+            // Derive unique centros from all sources
+            const uniqueCentros = new Map();
+            (centrosData || []).forEach((c: any) => {
+                if (c?.id) uniqueCentros.set(c.id, { id: c.id, name: c.name });
+            });
+            (novedadesData || []).forEach((n: any) => {
+                if (n?.centro?.id) uniqueCentros.set(n.centro.id, { id: n.centro.id, name: n.centro.name });
+            });
+            
+            const finalCentros = Array.from(uniqueCentros.values()).sort((a: any, b: any) => a.name.localeCompare(b.name));
+            setCentros(finalCentros);
 
             console.log('Novedades data loaded:', novedadesData);
             const flat = (novedadesData || []).map((n: any) => ({
@@ -47,7 +60,7 @@ export const Novedades: React.FC = () => {
                 shift: n.jornada || 'Dia',
                 // Keep IDs for modal editing
                 company: n.empresa_id || '',
-                costCenter: n.cost_center_id || n.centro_costo_id || '', // Check which one it is
+                costCenter: n.centro_costo_id || '',
                 // Relation objects for display
                 companyName: n.empresa?.name || 'N/A',
                 costCenterName: n.centro?.name || 'N/A',
@@ -63,11 +76,16 @@ export const Novedades: React.FC = () => {
 
     useEffect(() => { loadData(); }, [filterUserId]);
 
-    const filtered = novedades.filter(n =>
-        n.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        n.reporter?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        n.cause?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filtered = novedades.filter(n => {
+        const matchesSearch = 
+            n.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            n.reporter?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            n.cause?.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        const matchesCentro = !selectedCentroId || n.centro_costo_id === selectedCentroId;
+        
+        return matchesSearch && matchesCentro;
+    });
 
     const handleSave = async (data: any) => {
         try {
@@ -146,7 +164,21 @@ export const Novedades: React.FC = () => {
                         </div>
                         <h3 className="font-bold text-brand-text tracking-tight">Bitácora Operativa</h3>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2 items-center">
+                        <div className="relative group mr-2">
+                            <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-text-muted transition-colors group-focus-within:text-brand-primary" />
+                            <select
+                                value={selectedCentroId}
+                                onChange={(e) => setSelectedCentroId(e.target.value)}
+                                className="bg-white border border-gray-200 rounded-xl py-2 pl-9 pr-8 text-xs font-bold text-brand-text focus:outline-none focus:ring-4 focus:ring-brand-primary/10 transition-all appearance-none cursor-pointer shadow-inner min-w-[200px]"
+                            >
+                                <option value="">Todos los Proyectos</option>
+                                {centros.map(c => (
+                                    <option key={c.id} value={c.id}>{c.name}</option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-brand-text-muted pointer-events-none" />
+                        </div>
                         <div className="relative group hidden md:block mr-2">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-text-muted transition-colors group-focus-within:text-brand-primary" />
                             <input

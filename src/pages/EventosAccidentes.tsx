@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldAlert, Search, Plus, Trash2, Edit3, Loader2 } from 'lucide-react';
+import { ShieldAlert, Search, Plus, Trash2, Edit3, Loader2, Building2, ChevronDown } from 'lucide-react';
 import { ReporteEventoModal } from '../components/ReporteEventoModal';
-import { getEventos, deleteEvento, createEvento, updateEvento, getPersonal, getSupervisores, getCentrosCosto, getEmpresas } from '../services/hseService';
+import { getEventos, getPermisos, deleteEvento, createEvento, updateEvento, getPersonal, getSupervisores, getCentrosCosto, getEmpresas } from '../services/hseService';
 import { useUserFilter } from '../hooks/useUserFilter';
 
 
 export const EventosAccidentes: React.FC = () => {
-    const { filterUserId, userId } = useUserFilter();
+    const { filterUserId, userId, isAdmin } = useUserFilter();
     const [reports, setReports] = useState<any[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingReport, setEditingReport] = useState<any>(null);
@@ -16,38 +16,69 @@ export const EventosAccidentes: React.FC = () => {
     const [supervisores, setSupervisores] = useState<any[]>([]);
     const [centros, setCentros] = useState<any[]>([]);
     const [empresas, setEmpresas] = useState<any[]>([]);
+    const [permisos, setPermisos] = useState<any[]>([]);
+    const [selectedCentroId, setSelectedCentroId] = useState<string>('');
+
+    const [allEventos, setAllEventos] = useState<any[]>([]);
 
     const loadData = async () => {
         try {
-            const [eventosData, personalData, supervisoresData, centrosData, empresasData] = await Promise.all([
-                getEventos(filterUserId ? { userId: filterUserId } : undefined),
+            setLoading(true);
+            console.log('Loading Eventos & Accidentes data...', { filterUserId, isAdmin });
+            
+            const results = await Promise.allSettled([
+                getEventos(filterUserId ? { userId: filterUserId } : undefined), // Table data
+                getEventos(), // Project-wide data for KPIs
+                getPermisos(), // Project-wide daily reports for KPIs
                 getPersonal(),
                 getSupervisores(),
                 getCentrosCosto(),
                 getEmpresas()
             ]);
+
+            const tableEventos = results[0].status === 'fulfilled' ? results[0].value : [];
+            const kpiEventos = results[1].status === 'fulfilled' ? results[1].value : [];
+            const kpiPermisos = results[2].status === 'fulfilled' ? results[2].value : [];
+            const personalData = results[3].status === 'fulfilled' ? results[3].value : [];
+            const supervisoresData = results[4].status === 'fulfilled' ? results[4].value : [];
+            const centrosData = results[5].status === 'fulfilled' ? results[5].value : [];
+            const empresasData = results[6].status === 'fulfilled' ? results[6].value : [];
             
+            setPermisos(kpiPermisos || []);
+            setAllEventos(kpiEventos || []);
             setPersonal(personalData || []);
             setSupervisores(supervisoresData || []);
-            setCentros(centrosData || []);
             setEmpresas(empresasData || []);
 
-            const flat = (eventosData || []).map((e: any) => ({
+            // Derive unique centros from all sources (official list + data)
+            const uniqueCentros = new Map();
+            (centrosData || []).forEach((c: any) => {
+                if (c?.id) uniqueCentros.set(c.id, { id: c.id, name: c.name });
+            });
+            (kpiPermisos || []).forEach((p: any) => {
+                if (p?.centro?.id) uniqueCentros.set(p.centro.id, { id: p.centro.id, name: p.centro.name });
+            });
+            (kpiEventos || []).forEach((e: any) => {
+                if (e?.centro?.id) uniqueCentros.set(e.centro.id, { id: e.centro.id, name: e.centro.name });
+            });
+            
+            const finalCentros = Array.from(uniqueCentros.values()).sort((a: any, b: any) => a.name.localeCompare(b.name));
+            console.log('Derived centros:', finalCentros.length);
+            setCentros(finalCentros);
+
+            const flat = (tableEventos || []).map((e: any) => ({
                 ...e,
                 id: e.id,
                 fechaReporte: e.fecha_reporte || '',
                 jornada: e.jornada || 'Dia',
-                // For modal select values (IDs)
                 empresa: e.empresa_id || '',
                 centroCostoId: e.centro_costo_id || '',
                 supervisorId: e.supervisor_id || '',
                 personaInvolucradaId: e.persona_involucrada || '',
-                // For table display (Names)
                 empresaName: e.empresa?.name || 'N/A',
                 centroName: e.centro?.name || 'N/A',
                 supervisorName: e.supervisor?.name || 'N/A',
-                personaName: e.persona_involucrada || 'N/A', // Persona is text in this table?
-
+                personaName: e.persona_involucrada || 'N/A',
                 ordenServicio: e.orden_servicio || '',
                 numIncidentes: e.num_incidentes || 0,
                 numAuxilios: e.num_auxilios || 0,
@@ -58,7 +89,7 @@ export const EventosAccidentes: React.FC = () => {
             }));
             setReports(flat);
         } catch (err) {
-            console.error('Error loading eventos:', err);
+            console.error('Error in loadData:', err);
         } finally {
             setLoading(false);
         }
@@ -119,11 +150,67 @@ export const EventosAccidentes: React.FC = () => {
         setIsModalOpen(true);
     };
 
-    const filteredReports = reports.filter(r =>
-        r.detalleSituaciones.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        r.personaName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        r.empresa.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredReports = reports.filter(r => {
+        const matchesSearch = 
+            r.detalleSituaciones.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            r.personaName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            r.empresaName.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        const matchesCentro = !selectedCentroId || r.centroCostoId === selectedCentroId;
+        
+        return matchesSearch && matchesCentro;
+    });
+
+    // KPI Calculations
+    const calculateKPIs = () => {
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+
+        // Project-wide data for KPIs
+        const filteredByProjectEvents = allEventos.filter(r => !selectedCentroId || r.centro_costo_id === selectedCentroId);
+        const filteredByProjectPermisos = permisos.filter(p => !selectedCentroId || p.centro_costo_id === selectedCentroId);
+
+        // Incidentes del Mes: Count of reports with num_incidentes > 0 in current month
+        const incidentesMes = filteredByProjectEvents.filter(r => {
+            if (!r.fecha_reporte) return false;
+            const date = new Date(r.fecha_reporte);
+            return date.getMonth() === currentMonth && 
+                   date.getFullYear() === currentYear &&
+                   (parseInt(r.num_incidentes) || 0) > 0;
+        }).length;
+
+        // Auxilios Prestados: Sum of numAuxilios for the filtered project
+        const auxiliosPrestados = filteredByProjectEvents.reduce((acc, r) => acc + (parseInt(r.num_auxilios) || 0), 0);
+
+        // Días sin Accidentes: 
+        // 1. Find last accident date for this project
+        const accidents = filteredByProjectEvents
+            .filter(r => (parseInt(r.num_incidentes) || 0) > 0)
+            .sort((a, b) => {
+                const da = a.fecha_reporte || '';
+                const db = b.fecha_reporte || '';
+                return db.localeCompare(da);
+            });
+        
+        const lastAccidentDate = accidents.length > 0 ? accidents[0].fecha_reporte : null;
+
+        // 2. Count unique dates in permisos after the last accident date
+        const uniqueWorkDates = new Set(
+            filteredByProjectPermisos
+                .filter(p => {
+                    if (!p.fecha) return false;
+                    // Comparison for YYYY-MM-DD strings works correctly
+                    return !lastAccidentDate || p.fecha > lastAccidentDate;
+                })
+                .map(p => p.fecha)
+        );
+
+        const diasSinAccidentes = uniqueWorkDates.size;
+
+        return { incidentesMes, auxiliosPrestados, diasSinAccidentes };
+    };
+
+    const { incidentesMes, auxiliosPrestados, diasSinAccidentes } = calculateKPIs();
 
     return (
         <div className="w-full h-full animate-in fade-in duration-700 pb-10 px-8">
@@ -132,7 +219,7 @@ export const EventosAccidentes: React.FC = () => {
                     <h1 className="text-3xl font-bold tracking-tight text-brand-text font-outfit">Eventos & Accidentes</h1>
                     <p className="text-brand-text-muted text-sm mt-1">Gestión inmediata y seguimiento de incidentes de seguridad.</p>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3">
                     <div className="relative group hidden md:block">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-text-muted group-focus-within:text-brand-primary transition-colors" />
                         <input
@@ -143,6 +230,22 @@ export const EventosAccidentes: React.FC = () => {
                             className="bg-white border border-gray-200 rounded-xl py-2.5 pl-11 pr-6 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/50 transition-all w-64 shadow-sm"
                         />
                     </div>
+                    
+                    <div className="relative group">
+                        <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-text-muted group-focus-within:text-brand-primary transition-colors" />
+                        <select
+                            value={selectedCentroId}
+                            onChange={(e) => setSelectedCentroId(e.target.value)}
+                            className="bg-white border border-gray-200 rounded-xl py-2.5 pl-11 pr-10 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/50 transition-all w-64 shadow-sm appearance-none cursor-pointer"
+                        >
+                            <option value="">Todos los Proyectos</option>
+                            {centros.map(c => (
+                                <option key={c.id} value={c.id}>{c.name}</option>
+                            ))}
+                        </select>
+                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-text-muted pointer-events-none" />
+                    </div>
+
                     <button
                         onClick={() => {
                             setEditingReport(null);
@@ -162,7 +265,7 @@ export const EventosAccidentes: React.FC = () => {
                         <ShieldAlert className="w-6 h-6" />
                     </div>
                     <h3 className="text-sm font-bold text-brand-text-muted uppercase tracking-wider">Días sin Accidentes</h3>
-                    <p className="text-4xl font-black text-brand-success font-outfit">428</p>
+                    <p className="text-4xl font-black text-brand-success font-outfit">{diasSinAccidentes}</p>
                 </div>
 
                 <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center text-center">
@@ -170,7 +273,7 @@ export const EventosAccidentes: React.FC = () => {
                         <AlertCircle className="w-6 h-6" />
                     </div>
                     <h3 className="text-sm font-bold text-brand-text-muted uppercase tracking-wider">Incidentes del Mes</h3>
-                    <p className="text-4xl font-black text-brand-warning font-outfit">{reports.length}</p>
+                    <p className="text-4xl font-black text-brand-warning font-outfit">{incidentesMes}</p>
                 </div>
 
                 <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center text-center">
@@ -179,7 +282,7 @@ export const EventosAccidentes: React.FC = () => {
                     </div>
                     <h3 className="text-sm font-bold text-brand-text-muted uppercase tracking-wider">Auxilios Prestados</h3>
                     <p className="text-4xl font-black text-brand-primary font-outfit">
-                        {reports.reduce((acc, r) => acc + (parseInt(r.numAuxilios) || 0), 0)}
+                        {auxiliosPrestados}
                     </p>
                 </div>
             </div>

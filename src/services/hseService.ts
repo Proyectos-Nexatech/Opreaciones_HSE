@@ -186,9 +186,9 @@ export async function getPermisos(filters?: { empresaId?: string; centroCostoId?
         .from('reporte_permisos')
         .select(`
             *,
-            supervisor:supervisores_hse(id, name),
-            empresa:empresas_cliente(id, name),
-            centro:centros_costo(id, name, code)
+            supervisor:supervisores_hse!supervisor_id(id, name),
+            empresa:empresas_cliente!empresa_id(id, name),
+            centro:centros_costo!centro_costo_id(id, name, code)
         `)
         .order('created_at', { ascending: false });
 
@@ -311,9 +311,9 @@ export async function getEventos(filters?: { empresaId?: string; centroCostoId?:
         .from('reporte_eventos')
         .select(`
             *,
-            supervisor:supervisores_hse(id, name),
-            empresa:empresas_cliente(id, name),
-            centro:centros_costo(id, name, code)
+            supervisor:supervisores_hse!supervisor_id(id, name),
+            empresa:empresas_cliente!empresa_id(id, name),
+            centro:centros_costo!centro_costo_id(id, name, code)
         `)
         .order('created_at', { ascending: false });
 
