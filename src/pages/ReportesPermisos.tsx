@@ -583,7 +583,41 @@ export const ReportesPermisos: React.FC = () => {
                                                     <span className="text-sm font-semibold text-brand-text">{report.tipo}</span>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-sm font-mono text-brand-primary font-bold">#{report.numero}</td>
+                                            <td className="px-6 py-4 text-sm font-mono font-bold">
+                                                {report.documento_url ? (
+                                                    <a
+                                                        href={report.documento_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        title="Ver PDF del permiso"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        className="inline-flex items-center gap-1.5 text-brand-primary hover:text-brand-primary/70 hover:underline transition-all group/link"
+                                                    >
+                                                        #{report.numero}
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            className="w-3 h-3 opacity-0 group-hover/link:opacity-100 transition-opacity"
+                                                            viewBox="0 0 24 24"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            strokeWidth="2.5"
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                        >
+                                                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                                                            <polyline points="15 3 21 3 21 9" />
+                                                            <line x1="10" y1="14" x2="21" y2="3" />
+                                                        </svg>
+                                                    </a>
+                                                ) : (
+                                                    <span
+                                                        className="text-brand-text-muted/60"
+                                                        title="Sin documento adjunto"
+                                                    >
+                                                        #{report.numero}
+                                                    </span>
+                                                )}
+                                            </td>
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button
